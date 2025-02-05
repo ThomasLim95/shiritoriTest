@@ -94,6 +94,7 @@
                     return;
                 }
             }
+            sendWordToSheet(input);
             words.push(input);
             score++;
             document.getElementById('score').textContent = score;
@@ -105,11 +106,11 @@
             showDinoAnimation();
             // sendDataToSheet();
             // Send the word to Google Sheets
-            sendWordToSheet();
+            
         }
         
-        async function sendWordToSheet() {
-            let word = document.getElementById('wordImput').value.trim().toLowerCase();
+
+        async function sendWordToSheet(word) {
             let url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec";
             await fetch(url, {
                 method: "POST",
