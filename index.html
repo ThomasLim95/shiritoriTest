@@ -52,7 +52,7 @@
     <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
     <button onclick="submitWord()">Submit</button>
     <button onclick="resetGame()">Reset</button>
-    <button onclick="sendDataToSheet()">Send</button>
+    <button onclick="sendWordToSheet()">Send</button>
     <p id="status"></p>
     <p>Score: <span id="score">0</span></p>
     <div id="words"></div>
@@ -105,9 +105,21 @@
             showDinoAnimation();
             // sendDataToSheet();
             // Send the word to Google Sheets
-            sendWordToSheet(input);
+            sendWordToSheet();
         }
-
+        
+        async function sendWordToSheet() {
+            let word = document.getElementById('wordImput').value.trim().toLowerCase();
+            let url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec";
+            await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ word: word })
+            });
+        }
+        
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 submitWord();
@@ -160,16 +172,7 @@
         //     .catch(error => console.error("Error:", error));
         // }
             
-        async function sendWordToSheet(word) {
-            let url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec";
-            await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ word: word })
-            });
-        }
+
 //         window.addEventListener("load", function() {
 //           const word = document.getElementById('wordInput');
 //           word.addEventListener("click", function(e) {
