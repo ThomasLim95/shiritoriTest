@@ -104,6 +104,8 @@
             status.textContent = "";
             showDinoAnimation();
             // sendDataToSheet();
+            // Send the word to Google Sheets
+            sendWordToSheet(input);
         }
 
         function handleKeyPress(event) {
@@ -143,21 +145,47 @@
             setTimeout(() => {
                 dino.style.display = 'none';
             }, 1500);
+        }
+        // function sendDataToSheet() {
+        //     const inputValue = document.getElementById("wordInput").value;
+        //     const url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec"; // Replace with your actual web app URL
 
-        function sendDataToSheet() {
-            const inputValue = document.getElementById("wordInput").value;
-            const url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec"; // Replace with your actual web app URL
-
-            fetch(url, {
+        //     fetch(url, {
+        //         method: "POST",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: JSON.stringify({ inputValue: inputValue })
+        //     })
+        //     .then(response => response.text())
+        //     .then(data => alert("Data saved: " + data))
+        //     .catch(error => console.error("Error:", error));
+        // }
+            
+        async function sendWordToSheet(word) {
+            let url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec";
+            await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ inputValue: inputValue })
-            })
-            .then(response => response.text())
-            .then(data => alert("Data saved: " + data))
-            .catch(error => console.error("Error:", error));
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ word: word })
+            });
         }
-        }
+//         window.addEventListener("load", function() {
+//           const word = document.getElementById('wordInput');
+//           word.addEventListener("click", function(e) {
+//             e.preventDefault();
+//             const data = new FormData(word);
+//             const action = e.target.action;
+//             fetch(action, {
+//               method: 'POST',
+//               body: data,
+//             })
+//             .then(() => {
+//               alert("Success!");
+//     })
+//   });
+// });    
+        
     </script>
 </body>
 </html>
