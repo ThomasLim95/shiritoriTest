@@ -112,13 +112,17 @@
 
         async function sendWordToSheet(word) {
             let url = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
-            await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ word: word })
-            });
+            try {
+                let response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ word: word })
+                });
+                let text = await response.text();
+                console.log("Google Sheets API Response:", text);  // Debugging
+            } catch (error) {
+                console.error("Error sending word:", error);
+            }
         }
         
         function handleKeyPress(event) {
