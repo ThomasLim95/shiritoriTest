@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiritori Game</title>
+    <style>
+        body { 
+            font-family: 'Press Start 2P', cursive;
+            text-align: center; 
+            padding: 20px; 
+            background-color: #fce4ec;
+            color: #880e4f;
+        }
+        input, button { 
+            padding: 10px; 
+            font-size: 16px; 
+            border: 2px solid #880e4f;
+            background-color: #f8bbd0;
+            color: #880e4f;
+            font-family: 'Press Start 2P', cursive;
+        }
+        button:hover {
+            background-color: #f48fb1;
+        }
+        #words { margin-top: 20px; font-size: 14px; }
+        .scoreboard { margin-top: 20px; }
+        .scoreboard h2 { font-size: 18px; }
+        .scoreboard ul { list-style: none; padding: 0; }
+        .scoreboard li { background: #f8bbd0; padding: 5px; margin: 5px; border-radius: 5px; }
+        #lastWord { font-size: 18px; font-weight: bold; margin-top: 20px; }
+        #nextLetter { font-size: 18px; color: #d81b60; }
+        
+        #dinoFrame {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 100px;
+            height: 100px;
+            background: url('https://github.com/ThomasLim95/shiritori/blob/main/super-mario-bros-mario-jumping.gif?raw=true') no-repeat center center;
+            background-size: cover;
+            display: none;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Shiritori Game</h1>
+    <p>Enter a word that starts with the last letter of the previous word!</p>
+    <p>Last word: <span id="lastWord">None</span></p>
+    <p>Next letter: <span id="nextLetter">Any</span></p>
+    <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+    <button onclick="submitWord()">Submit</button>
+    <button onclick="resetGame()">Reset</button>
+    <p id="status"></p>
+    <p>Score: <span id="score">0</span></p>
+    <div id="words"></div>
+    
+    <div class="scoreboard">
+        <h2>Top 5 Scores</h2>
+        <ul id="highScores"></ul>
+    </div>
+    
+    <div id="dinoFrame"></div>
+    
+    <script>
+        let words = [];
+        let score = 0;
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+
+        async function isValidWord(word) {
+            let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            return response.ok;
+        }
+
+        async function submitWord() {
+            let input = document.getElementById('wordInput').value.trim().toLowerCase();
+            let status = document.getElementById('status');
+            
+            if (input === "") return;
+            if (!(await isValidWord(input))) {
+                status.textContent = "Invalid word! Please enter a real word.";
+                return;
+            }
+            if (words.length > 0) {
+                let lastWord = words[words.length - 1];
+                if (input[0] !== lastWord[lastWord.length - 1]) {
+                    status.textContent = "Incorrect! The word must start with '" + lastWord[lastWord.length - 1] + "'.";
+                    return;
+                }
+                if (words.includes(input)) {
+                    status.textContent = "This word has already been used! Try another one.";
+                    return;
+                }
+            }
+            words.push(input);
+            score++;
+            document.getElementById('score').textContent = score;
+            document.getElementById('words').innerHTML = words.join(' → ');
+            document.getElementById('lastWord').textContent = input;
+            document.getElementById('nextLetter').textContent = input[input.length - 1];
+            document.getElementById('wordInput').value = "";
+            status.textContent = "";
+            showDinoAnimation();
+            sendDataToSheet();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                submitWord();
+            }
+        }
+
+        function resetGame() {
+            updateHighScores();
+            words = [];
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('words').innerHTML = "";
+            document.getElementById('status').textContent = "";
+            document.getElementById('lastWord').textContent = "None";
+            document.getElementById('nextLetter').textContent = "Any";
+        }
+
+        function updateHighScores() {
+            highScores.push(score);
+            highScores.sort((a, b) => b - a);
+            highScores = highScores.slice(0, 5);
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+            displayHighScores();
+        }
+
+        function displayHighScores() {
+            let highScoresList = document.getElementById('highScores');
+            highScoresList.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
+        }
+        displayHighScores();
+
+        function showDinoAnimation() {
+            let dino = document.getElementById('dinoFrame');
+            dino.style.display = 'block';
+            setTimeout(() => {
+                dino.style.display = 'none';
+            }, 1500);
+
+        function sendDataToSheet() {
+            const inputValue = document.getElementById("score").value;
+            const url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec"; // Replace with your actual web app URL
+
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ inputValue: inputValue })
+            })
+            .then(response => response.text())
+            .then(data => alert("Data saved: " + data))
+            .catch(error => console.error("Error:", error));
+        }
+        }
+    </script>
+</body>
+</html>
