@@ -52,6 +52,7 @@
     <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
     <button onclick="submitWord()">Submit</button>
     <button onclick="resetGame()">Reset</button>
+    <button onclick="sendDataToSheet()">Send</button>
     <p id="status"></p>
     <p>Score: <span id="score">0</span></p>
     <div id="words"></div>
@@ -102,7 +103,7 @@
             document.getElementById('wordInput').value = "";
             status.textContent = "";
             showDinoAnimation();
-            sendDataToSheet();
+            // sendDataToSheet();
         }
 
         function handleKeyPress(event) {
@@ -144,7 +145,7 @@
             }, 1500);
 
         function sendDataToSheet() {
-            const inputValue = document.getElementById("score").value;
+            const inputValue = document.getElementById("wordInput").value;
             const url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec"; // Replace with your actual web app URL
 
             fetch(url, {
