@@ -111,21 +111,19 @@
         
 
         async function sendWordToSheet(wo) {
-            console.log("Sending word to Google Sheets:", wo); // Debugging
-        
             const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
         
             try {
                 let response = await fetch(API_URL, {
                     method: "POST",
+                    mode: "no-cors", // Allows request but prevents getting response
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ word: wo })
                 });
         
-                let result = await response.text();
-                console.log("Google Sheets API Response:", result);
+                console.log("Word sent to Google Sheets:", word);
             } catch (error) {
                 console.error("Error sending to Google Sheets:", error);
             }
