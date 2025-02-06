@@ -46,8 +46,8 @@
 </head>
 <body>
     <h1>Shiritori Game</h1>
-    <button onclick="startGame()">Start Normal Mode</button>
-    <button onclick="startRankedMode()">Start Ranked Mode</button>
+    <button onclick="startNormalMode()">Normal Mode</button>
+    <button onclick="startRankedMode()">Ranked Mode</button>
     
     <div id="normalMode">
         <p>Enter a word that starts with the last letter of the previous word!</p>
@@ -62,9 +62,11 @@
     </div>
     
     <div id="rankedMode" class="hidden">
+        <p>Enter a word that starts with the last letter of the previous word!</p>
         <p>Enter your name:</p>
-        <input type="text" id="playerName" placeholder="Your name">
-        <button onclick="startRankedGame()">Start</button>
+        <input type="text" id="playerName" placeholder="Your name"> <button onclick="confirmName()">Confirm</button>
+        <p id="playerNameC" class="hidden"> Player name:</p>
+        <p><button onclick="startRankedGame()">Start game</button></p>
         <p id="timer">Time Left: 300s</p>
         <p>Last word: <span id="rankedLastWord">None</span></p>
         <p>Next letter: <span id="rankedNextLetter">Any</span></p>
@@ -76,7 +78,19 @@
     </div>
     
     <script>
-        function startGame() {
+        
+        let rankedWords = [];
+        let rankedScore = 0;
+        let rankedHighScores = JSON.parse(localStorage.getItem('highScores')) || [];
+        let words = [];
+        let score = 0;
+        let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+
+        async function isValidWord(word) {
+            let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            return response.ok;
+        }
+        function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
         }
@@ -85,12 +99,17 @@
             document.getElementById('normalMode').classList.add('hidden');
             document.getElementById('rankedMode').classList.remove('hidden');
         }
-        
-        function startRankedGame() {
+        function confirmName() {
             let playerName = document.getElementById('playerName').value;
             if (!playerName) {
                 alert("Please enter your name to start ranked mode!");
                 return;
+            document.getElementById('playerName').classList.add('hidden');
+            document.getElementById('playerNameC').classList.remove('hidden');
+        }
+        
+        function startRankedGame() {
+
             }
             rankedScore = 0;
             mistakes = 0;
@@ -112,14 +131,47 @@
             }, 1000);
         }
         
-        function submitRankedWord() {
+        async function submitRankedWord() {
             let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
-            if (!input) return;
+            let status = document.getElementById('status');
             
-            if (mistakes >= 3) {
-                endRankedGame();
+            if (input === "") return;
+            if (!(await isValidWord(input))) {
+                status.textContent = "Invalid word! Please enter a real word.";
                 return;
             }
+            if (words.length > 0) {
+                let lastWord = words[words.length - 1];
+                if (input[0] !== lastWord[lastWord.length - 1]) {
+                    status.textContent = "Incorrect! The word must start with '" + lastWord[lastWord.length - 1] + "'.";
+                    return;
+                }
+                if (words.includes(input)) {
+                    status.textContent = "This word has already been used! Try another one.";
+                    return;
+                }
+            }
+            sendWordToSheet(input);
+            words.push(input);
+            rankedScore++;
+            document.getElementById('rankedScore').textContent = rankedScore;
+            document.getElementById('rankedWords').innerHTML = words.join(' → ');
+            document.getElementById('lastWord').textContent = input;
+            document.getElementById('nextLetter').textContent = input[input.length - 1];
+            document.getElementById('rankedWordInput').value = "";
+            status.textContent = "";
+            showDinoAnimation();
+            // sendDataToSheet();
+            // Send the word to Google Sheets
+            
+        }
+            // let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
+            // if (!input) return;
+            
+            // if (mistakes >= 3) {
+            //     endRankedGame();
+            //     return;
+            // }
             
             rankedScore++;
             document.getElementById('rankedScore').textContent = rankedScore;
@@ -158,6 +210,100 @@
             } catch (error) {
                 console.error("Error sending to Google Sheets:", error);
             }
+
+
+        async function submitWord() {
+            let input = document.getElementById('wordInput').value.trim().toLowerCase();
+            let status = document.getElementById('status');
+            
+            if (input === "") return;
+            if (!(await isValidWord(input))) {
+                status.textContent = "Invalid word! Please enter a real word.";
+                return;
+            }
+            if (words.length > 0) {
+                let lastWord = words[words.length - 1];
+                if (input[0] !== lastWord[lastWord.length - 1]) {
+                    status.textContent = "Incorrect! The word must start with '" + lastWord[lastWord.length - 1] + "'.";
+                    return;
+                }
+                if (words.includes(input)) {
+                    status.textContent = "This word has already been used! Try another one.";
+                    return;
+                }
+            }
+            sendWordToSheet(input);
+            words.push(input);
+            score++;
+            document.getElementById('score').textContent = score;
+            document.getElementById('words').innerHTML = words.join(' → ');
+            document.getElementById('lastWord').textContent = input;
+            document.getElementById('nextLetter').textContent = input[input.length - 1];
+            document.getElementById('wordInput').value = "";
+            status.textContent = "";
+            showDinoAnimation();
+            // sendDataToSheet();
+            // Send the word to Google Sheets
+            
+        }
+        
+
+        async function sendWordToSheet(wo) {
+            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
+        
+            try {
+                let response = await fetch(API_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Allows request but prevents getting response
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ word: wo })
+                });
+        
+                console.log("Word sent to Google Sheets:", word);
+            } catch (error) {
+                console.error("Error sending to Google Sheets:", error);
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                submitWord();
+            }
+        }
+
+        function resetGame() {
+            updateHighScores();
+            words = [];
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('words').innerHTML = "";
+            document.getElementById('status').textContent = "";
+            document.getElementById('lastWord').textContent = "None";
+            document.getElementById('nextLetter').textContent = "Any";
+        }
+
+        function updateHighScores() {
+            highScores.push(score);
+            highScores.sort((a, b) => b - a);
+            highScores = highScores.slice(0, 5);
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+            displayHighScores();
+        }
+
+        function displayHighScores() {
+            let highScoresList = document.getElementById('highScores');
+            highScoresList.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
+        }
+        displayHighScores();
+
+        function showDinoAnimation() {
+            let dino = document.getElementById('dinoFrame');
+            dino.style.display = 'block';
+            setTimeout(() => {
+                dino.style.display = 'none';
+            }, 1500);
         }
     </script>
 </body>
