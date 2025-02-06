@@ -110,18 +110,24 @@
         }
         
 
-        async function sendWordToSheet(word) {
-            let url = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
+        async function sendWordToSheet(wo) {
+            console.log("Sending word to Google Sheets:", wo); // Debugging
+        
+            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
+        
             try {
-                let response = await fetch(url, {
+                let response = await fetch(API_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ word: word })
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ word: wo })
                 });
-                let text = await response.text();
-                console.log("Google Sheets API Response:", text);  // Debugging
+        
+                let result = await response.text();
+                console.log("Google Sheets API Response:", result);
             } catch (error) {
-                console.error("Error sending word:", error);
+                console.error("Error sending to Google Sheets:", error);
             }
         }
         
