@@ -73,7 +73,7 @@
           <p id="mistakes">Mistakes: 0</p>
           <p>Last word: <span id="rankedLastWord">None</span></p>
           <p>Next letter: <span id="rankedNextLetter">Any</span></p>
-          <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleRankedKeyPress(event)">
+          <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
           <button onclick="submitRankedWord()">Submit</button>
           <p id="rankedStatus"></p>
           <p>Score: <span id="rankedScore">0</span></p>
@@ -92,6 +92,7 @@
         let mistakes = 0;
         let gameOver = 0;
         let playerName = "";
+        let gameMode = 0;  // 0 = normal 1 = rank
 
         async function isValidWord(word) {
             let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
@@ -101,15 +102,18 @@
         function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
+            gameMode = 0;
         }
         
         function startRankedMode() {
             document.getElementById('normalMode').classList.add('hidden');
             document.getElementById('rankedMode').classList.remove('hidden');
+            gameMode = 1;
+            resetGame();
         }
         
         function confirmName() {
-            let playerName = document.getElementById('playerName').value;
+            playerName = document.getElementById('playerName').value;
             if (!playerName) {
                 alert("Please enter your name to start ranked mode!");
                 return;
@@ -127,35 +131,39 @@
 
             rankedScore = 0;
             mistakes = 0;
-            timeLeft = 30;
+            timeLeft = 3;
+            gameOver = 0;
             document.getElementById('rankedScore').textContent = rankedScore;
             document.getElementById('rankedWords').innerHTML = "";
             document.getElementById('rankedStatus').textContent = "";
             document.getElementById('rankedInfo').classList.remove('hidden');
             document.getElementById('startRankGameButton').classList.add('hidden');
+            document.getElementById('timer').textContent = "Time Left: 300s";
             startTimer();
         }
         
+        
         function startTimer() {
             timerInterval = setInterval(() => {
-                if (timeLeft == 0) {
-                    clearInterval(timerInterval);
-                    if (gameOver == 1) {
-                      isGameOver();
-                    } 
-                }
-
-                document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
                 timeLeft--;
+                document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
+                if (timeLeft == 0) {
+                  clearInterval(timerInterval);
+                  gameOver = 1;
+                  endRankedGame()
+                }
+                if (timeLeft <= 0) {
+                  clearInterval(timerInterval);
+                }
             }, 1000);
+
         }
         
         function resetRankedGame() {
             rankedWords = [];
             rankedScore = 0;
-            timeLeft = 0;
+            timeLeft = -1;
             mistakes = 0;
-            gameOver = 0;
             document.getElementById('rankedScore').textContent = score;
             document.getElementById('rankedWords').innerHTML = "";
             document.getElementById('rankedStatus').textContent = "";
@@ -213,7 +221,7 @@
             rankedWords.push(input);
             rankedScore++;
             document.getElementById('rankedScore').textContent = rankedScore;
-            document.getElementById('rankedWords').innerHTML = words.join(' → ');
+            document.getElementById('rankedWords').innerHTML = rankedWords.join(' → ');
             document.getElementById('rankedLastWord').textContent = input;
             document.getElementById('rankedNextLetter').textContent = input[input.length - 1];
             document.getElementById('rankedWordInput').value = "";
@@ -240,6 +248,7 @@
           if (gameOver == 1) {
             endRankedGame();
           }
+
         }
         
         function endRankedGame() {
@@ -248,16 +257,31 @@
             resetRankedGame();
         }
         
-        function sendRankedScore() {
-            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
-            let playerName = document.getElementById('playerName').value;
-            fetch(API_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: playerName, score: rankedScore })
-            });
+        async function sendRankedScore() {
+            const API_URL = "https://script.google.com/macros/s/AKfycbwiuYqQFzUOIjfCyRDkbMTxJNQCvEG__hVFPVkT0QVgpGBZvKc_Ys4cxuwuuRh4P2GtlA/exec";
+            
+            try {
+                let response = await fetch(API_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Allows request but prevents getting response
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: playerName, score: rankedScore, words: rankedWords.toString() })
+                });
+        
+                console.log("Word sent to Google Sheets:", playerName, rankedScore);
+            } catch (error) {
+                console.error("Error sending to Google Sheets:", error);
+            }
         }
+        //     fetch(API_URL, {
+        //         method: "POST",
+        //         mode: "no-cors",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: JSON.stringify({ name: playerName, score: rankedScore })
+        //     });
+        // }
 
 
         async function submitWord() {
@@ -280,7 +304,7 @@
                     return;
                 }
             }
-            sendWordToSheet(input);
+            // sendWordToSheet(input);
             words.push(input);
             score++;
             document.getElementById('score').textContent = score;
@@ -296,28 +320,33 @@
         }
         
 
-        async function sendWordToSheet(wo) {
-            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
+        // async function sendWordToSheet(wo) {
+        //     const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
         
-            try {
-                let response = await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Allows request but prevents getting response
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ word: wo })
-                });
+        //     try {
+        //         let response = await fetch(API_URL, {
+        //             method: "POST",
+        //             mode: "no-cors", // Allows request but prevents getting response
+        //             headers: {
+        //                 "Content-Type": "application/json"
+        //             },
+        //             body: JSON.stringify({ word: wo })
+        //         });
         
-                console.log("Word sent to Google Sheets:", wo);
-            } catch (error) {
-                console.error("Error sending to Google Sheets:", error);
-            }
-        }
+        //         console.log("Word sent to Google Sheets:", wo);
+        //     } catch (error) {
+        //         console.error("Error sending to Google Sheets:", error);
+        //     }
+        // }
         
         function handleKeyPress(event) {
             if (event.key === "Enter") {
+              if (gameMode == 0) {
                 submitWord();
+              }
+              if (gameMode == 1) {
+                submitRankedWord();
+              }
             }
         }
 
