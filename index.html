@@ -131,14 +131,14 @@
 
             rankedScore = 0;
             mistakes = 0;
-            timeLeft = 3;
+            timeLeft = 180;
             gameOver = 0;
             document.getElementById('rankedScore').textContent = rankedScore;
             document.getElementById('rankedWords').innerHTML = "";
             document.getElementById('rankedStatus').textContent = "";
             document.getElementById('rankedInfo').classList.remove('hidden');
             document.getElementById('startRankGameButton').classList.add('hidden');
-            document.getElementById('timer').textContent = "Time Left: 300s";
+            document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
             startTimer();
         }
         
