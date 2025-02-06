@@ -64,17 +64,21 @@
     <div id="rankedMode" class="hidden">
         <p>Enter a word that starts with the last letter of the previous word!</p>
         <p>Enter your name:</p>
-        <input type="text" id="playerName" placeholder="Your name"> <button onclick="confirmName()">Confirm</button>
+        <input type="text" id="playerName" placeholder="Your name"> 
+        <button onclick="confirmName()" id = confirmNameButton>Confirm</button>
         <p id="playerNameC" class="hidden"> Player name:</p>
-        <p><button onclick="startRankedGame()">Start game</button></p>
-        <p id="timer">Time Left: 300s</p>
-        <p>Last word: <span id="rankedLastWord">None</span></p>
-        <p>Next letter: <span id="rankedNextLetter">Any</span></p>
-        <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleRankedKeyPress(event)">
-        <button onclick="submitRankedWord()">Submit</button>
-        <p id="rankedStatus"></p>
-        <p>Score: <span id="rankedScore">0</span></p>
-        <div id="rankedWords"></div>
+        <p><button onclick="startRankedGame()" id = startRankGameButton class = "hidden">Start game</button></p>
+          <div id ="rankedInfo" class = "hidden">
+          <p id="timer">Time Left: 300s</p>
+          <p id="mistakes">Mistakes: 0</p>
+          <p>Last word: <span id="rankedLastWord">None</span></p>
+          <p>Next letter: <span id="rankedNextLetter">Any</span></p>
+          <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleRankedKeyPress(event)">
+          <button onclick="submitRankedWord()">Submit</button>
+          <p id="rankedStatus"></p>
+          <p>Score: <span id="rankedScore">0</span></p>
+          <div id="rankedWords"></div>
+          </div>
     </div>
     
     <script>
@@ -85,11 +89,15 @@
         let words = [];
         let score = 0;
         let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+        let mistakes = 0;
+        let gameOver = 0;
+        let playerName = "";
 
         async function isValidWord(word) {
             let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
             return response.ok;
         }
+        
         function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
@@ -99,72 +107,120 @@
             document.getElementById('normalMode').classList.add('hidden');
             document.getElementById('rankedMode').classList.remove('hidden');
         }
+        
         function confirmName() {
             let playerName = document.getElementById('playerName').value;
             if (!playerName) {
                 alert("Please enter your name to start ranked mode!");
                 return;
+            }
             document.getElementById('playerName').classList.add('hidden');
             document.getElementById('playerNameC').classList.remove('hidden');
+            document.getElementById('confirmNameButton').classList.add('hidden');
+            document.getElementById('playerNameC').textContent = "Player Name: " + playerName;
+            document.getElementById('startRankGameButton').classList.remove('hidden');
+            
         }
         
         function startRankedGame() {
 
-            }
             rankedScore = 0;
             mistakes = 0;
-            timeLeft = 300;
+            timeLeft = 30;
             document.getElementById('rankedScore').textContent = rankedScore;
             document.getElementById('rankedWords').innerHTML = "";
             document.getElementById('rankedStatus').textContent = "";
+            document.getElementById('rankedInfo').classList.remove('hidden');
+            document.getElementById('startRankGameButton').classList.add('hidden');
             startTimer();
         }
         
         function startTimer() {
             timerInterval = setInterval(() => {
-                if (timeLeft <= 0) {
+                if (timeLeft == 0) {
                     clearInterval(timerInterval);
-                    endRankedGame();
+                    if (gameOver == 1) {
+                      isGameOver();
+                    } 
                 }
+
                 document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
                 timeLeft--;
             }, 1000);
         }
         
+        function resetRankedGame() {
+            rankedWords = [];
+            rankedScore = 0;
+            timeLeft = 0;
+            mistakes = 0;
+            gameOver = 0;
+            document.getElementById('rankedScore').textContent = score;
+            document.getElementById('rankedWords').innerHTML = "";
+            document.getElementById('rankedStatus').textContent = "";
+            document.getElementById('rankedLastWord').textContent = "None";
+            document.getElementById('rankedNextLetter').textContent = "Any";
+            document.getElementById('timer').textContent = "Time Left: 0s";
+            document.getElementById('mistakes').textContent = "Mistakes: 0";
+            document.getElementById('rankedWordInput').value = "";
+          
+        }
+        
         async function submitRankedWord() {
             let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
-            let status = document.getElementById('status');
+            let status = document.getElementById('rankedStatus');
             
             if (input === "") return;
             if (!(await isValidWord(input))) {
                 status.textContent = "Invalid word! Please enter a real word.";
+                mistakes++;
+                document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                if (mistakes >= 3) {
+                  gameOver = 1;
+                  isGameOver();
+                }
                 return;
             }
-            if (words.length > 0) {
-                let lastWord = words[words.length - 1];
-                if (input[0] !== lastWord[lastWord.length - 1]) {
-                    status.textContent = "Incorrect! The word must start with '" + lastWord[lastWord.length - 1] + "'.";
+            if (rankedWords.length > 0) {
+                let lastRankedWord = rankedWords[rankedWords.length - 1];
+                if (input[0] !== lastRankedWord[lastRankedWord.length - 1]) {
+                    rankedStatus.textContent = "Incorrect! The word must start with '" + lastRankedWord[lastRankedWord.length - 1] + "'.";
+                    mistakes++;
+                    document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                    if (mistakes >= 3) {
+                      gameOver = 1;
+                      isGameOver();
+                    }
                     return;
                 }
-                if (words.includes(input)) {
-                    status.textContent = "This word has already been used! Try another one.";
+                if (rankedWords.includes(input)) {
+                    rankedStatus.textContent = "This word has already been used! Try another one.";
+                    mistakes++;
+                    document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                    if (mistakes >= 3) {
+                      gameOver = 1;
+                      isGameOver()
+                    }
                     return;
+
                 }
             }
-            sendWordToSheet(input);
-            words.push(input);
+
+
+            // sendWordToSheet(input);
+            rankedWords.push(input);
             rankedScore++;
             document.getElementById('rankedScore').textContent = rankedScore;
             document.getElementById('rankedWords').innerHTML = words.join(' → ');
-            document.getElementById('lastWord').textContent = input;
-            document.getElementById('nextLetter').textContent = input[input.length - 1];
+            document.getElementById('rankedLastWord').textContent = input;
+            document.getElementById('rankedNextLetter').textContent = input[input.length - 1];
             document.getElementById('rankedWordInput').value = "";
-            status.textContent = "";
+            document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+            rankedStatus.textContent = "";
             showDinoAnimation();
             // sendDataToSheet();
             // Send the word to Google Sheets
             
-        }
             // let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
             // if (!input) return;
             
@@ -173,14 +229,21 @@
             //     return;
             // }
             
-            rankedScore++;
-            document.getElementById('rankedScore').textContent = rankedScore;
-            document.getElementById('rankedWordInput').value = "";
+            // rankedScore++;
+            // document.getElementById('rankedScore').textContent = rankedScore;
+            // document.getElementById('rankedWordInput').value = "";
+        }
+        
+        function isGameOver() {
+          if (gameOver == 1) {
+            endRankedGame();
+          }
         }
         
         function endRankedGame() {
             alert("Game Over! Your score: " + rankedScore);
             sendRankedScore();
+            resetRankedGame();
         }
         
         function sendRankedScore() {
@@ -193,23 +256,6 @@
                 body: JSON.stringify({ name: playerName, score: rankedScore })
             });
         }
-        async function sendWordToSheet(wo) {
-            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
-        
-            try {
-                let response = await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Allows request but prevents getting response
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ word: wo })
-                });
-        
-                console.log("Word sent to Google Sheets:", word);
-            } catch (error) {
-                console.error("Error sending to Google Sheets:", error);
-            }
 
 
         async function submitWord() {
@@ -261,7 +307,7 @@
                     body: JSON.stringify({ word: wo })
                 });
         
-                console.log("Word sent to Google Sheets:", word);
+                console.log("Word sent to Google Sheets:", wo);
             } catch (error) {
                 console.error("Error sending to Google Sheets:", error);
             }
@@ -274,7 +320,7 @@
         }
 
         function resetGame() {
-            updateHighScores();
+            // updateHighScores();
             words = [];
             score = 0;
             document.getElementById('score').textContent = score;
@@ -282,6 +328,7 @@
             document.getElementById('status').textContent = "";
             document.getElementById('lastWord').textContent = "None";
             document.getElementById('nextLetter').textContent = "Any";
+            document.getElementById('wordInput').value = "";
         }
 
         function updateHighScores() {
