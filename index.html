@@ -63,7 +63,7 @@
     
     <div id="rankedMode" class="hidden">
         <p>Enter a word that starts with the last letter of the previous word!</p>
-        <p>Enter your name:</p>
+        <p id = "enterNameText">Enter your name:</p>
         <input type="text" id="playerName" placeholder="Your name"> 
         <button onclick="confirmName()" id = confirmNameButton>Confirm</button>
         <p id="playerNameC" class="hidden"> Player name:</p>
@@ -119,6 +119,7 @@
             document.getElementById('confirmNameButton').classList.add('hidden');
             document.getElementById('playerNameC').textContent = "Player Name: " + playerName;
             document.getElementById('startRankGameButton').classList.remove('hidden');
+            document.getElementById('enterNameText').classList.add('hidden');
             
         }
         
@@ -163,7 +164,8 @@
             document.getElementById('timer').textContent = "Time Left: 0s";
             document.getElementById('mistakes').textContent = "Mistakes: 0";
             document.getElementById('rankedWordInput').value = "";
-          
+            document.getElementById('startRankGameButton').classList.remove('hidden');
+            document.getElementById('rankedInfo').classList.add('hidden');
         }
         
         async function submitRankedWord() {
