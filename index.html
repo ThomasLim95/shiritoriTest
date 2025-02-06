@@ -30,6 +30,7 @@
         .scoreboard li { background: #f8bbd0; padding: 5px; margin: 5px; border-radius: 5px; }
         #lastWord { font-size: 18px; font-weight: bold; margin-top: 20px; }
         #nextLetter { font-size: 18px; color: #d81b60; }
+        #timer { font-size: 18px; font-weight: bold; color: #d81b60; }
         
         #dinoFrame {
             position: fixed;
@@ -46,16 +47,22 @@
 </head>
 <body>
     <h1>Shiritori Game</h1>
-    <p>Enter a word that starts with the last letter of the previous word!</p>
-    <p>Last word: <span id="lastWord">None</span></p>
-    <p>Next letter: <span id="nextLetter">Any</span></p>
-    <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
-    <button onclick="submitWord()">Submit</button>
-    <button onclick="resetGame()">Reset</button>
-<!--     <button onclick="sendWordToSheet()">Send</button> -->
-    <p id="status"></p>
-    <p>Score: <span id="score">0</span></p>
-    <div id="words"></div>
+    <div id="gameSetup">
+        <p>Enter your name to start Ranked Mode:</p>
+        <input type="text" id="playerName" placeholder="Your Name">
+        <button onclick="startRankedMode()">Start Ranked Mode</button>
+    </div>
+    <div id="gameArea" style="display: none;">
+        <p>Time Left: <span id="timer">5:00</span></p>
+        <p>Lives Left: <span id="lives">3</span></p>
+        <p>Last word: <span id="lastWord">None</span></p>
+        <p>Next letter: <span id="nextLetter">Any</span></p>
+        <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+        <button onclick="submitWord()">Submit</button>
+        <p id="status"></p>
+        <p>Score: <span id="score">0</span></p>
+        <div id="words"></div>
+    </div>
     
     <div class="scoreboard">
         <h2>Top 5 Scores</h2>
@@ -67,11 +74,37 @@
     <script>
         let words = [];
         let score = 0;
+        let mistakes = 0;
+        let timer;
+        let timeLeft = 300;
+        let playerName = "";
         let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 
-        async function isValidWord(word) {
-            let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-            return response.ok;
+        function startRankedMode() {
+            playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert("Please enter your name to start the game.");
+                return;
+            }
+            document.getElementById('gameSetup').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            startTimer();
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            let minutes = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
         async function submitWord() {
@@ -80,21 +113,23 @@
             
             if (input === "") return;
             if (!(await isValidWord(input))) {
-                status.textContent = "Invalid word! Please enter a real word.";
+                status.textContent = "Invalid word!";
+                registerMistake();
                 return;
             }
             if (words.length > 0) {
                 let lastWord = words[words.length - 1];
                 if (input[0] !== lastWord[lastWord.length - 1]) {
-                    status.textContent = "Incorrect! The word must start with '" + lastWord[lastWord.length - 1] + "'.";
+                    status.textContent = "Incorrect starting letter!";
+                    registerMistake();
                     return;
                 }
                 if (words.includes(input)) {
-                    status.textContent = "This word has already been used! Try another one.";
+                    status.textContent = "Word already used!";
+                    registerMistake();
                     return;
                 }
             }
-            sendWordToSheet(input);
             words.push(input);
             score++;
             document.getElementById('score').textContent = score;
@@ -104,12 +139,33 @@
             document.getElementById('wordInput').value = "";
             status.textContent = "";
             showDinoAnimation();
-            // sendDataToSheet();
-            // Send the word to Google Sheets
-            
+        }
+
+        function registerMistake() {
+            mistakes++;
+            document.getElementById('lives').textContent = 3 - mistakes;
+            if (mistakes >= 3) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            sendScoreToSheet();
+            alert(`Game Over! ${playerName} scored ${score} points.`);
+            location.reload();
+        }
+
+        async function sendScoreToSheet() {
+            const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
+            await fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors", // Allows request but prevents getting response
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: playerName, score: score })
+            });
         }
         
-
         async function sendWordToSheet(wo) {
             const API_URL = "https://script.google.com/macros/s/AKfycbzuh6hfKMW1eXS0BGWxzUDMGbk37g2WxfEhSlXPJNUBscHkSBdQwJAvDHaI6vVOWzHwpg/exec";
         
@@ -128,76 +184,6 @@
                 console.error("Error sending to Google Sheets:", error);
             }
         }
-        
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-                submitWord();
-            }
-        }
-
-        function resetGame() {
-            updateHighScores();
-            words = [];
-            score = 0;
-            document.getElementById('score').textContent = score;
-            document.getElementById('words').innerHTML = "";
-            document.getElementById('status').textContent = "";
-            document.getElementById('lastWord').textContent = "None";
-            document.getElementById('nextLetter').textContent = "Any";
-        }
-
-        function updateHighScores() {
-            highScores.push(score);
-            highScores.sort((a, b) => b - a);
-            highScores = highScores.slice(0, 5);
-            localStorage.setItem('highScores', JSON.stringify(highScores));
-            displayHighScores();
-        }
-
-        function displayHighScores() {
-            let highScoresList = document.getElementById('highScores');
-            highScoresList.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
-        }
-        displayHighScores();
-
-        function showDinoAnimation() {
-            let dino = document.getElementById('dinoFrame');
-            dino.style.display = 'block';
-            setTimeout(() => {
-                dino.style.display = 'none';
-            }, 1500);
-        }
-        // function sendDataToSheet() {
-        //     const inputValue = document.getElementById("wordInput").value;
-        //     const url = "https://script.google.com/macros/s/AKfycbxIdGKpy0zdVTU63UQNdefk3b5S2lwDgmEc16wuvl8-74R-XiDMMY69i0TPOjHruK2IAA/exec"; // Replace with your actual web app URL
-
-        //     fetch(url, {
-        //         method: "POST",
-        //         headers: { "Content-Type": "application/json" },
-        //         body: JSON.stringify({ inputValue: inputValue })
-        //     })
-        //     .then(response => response.text())
-        //     .then(data => alert("Data saved: " + data))
-        //     .catch(error => console.error("Error:", error));
-        // }
-            
-
-//         window.addEventListener("load", function() {
-//           const word = document.getElementById('wordInput');
-//           word.addEventListener("click", function(e) {
-//             e.preventDefault();
-//             const data = new FormData(word);
-//             const action = e.target.action;
-//             fetch(action, {
-//               method: 'POST',
-//               body: data,
-//             })
-//             .then(() => {
-//               alert("Success!");
-//     })
-//   });
-// });    
-        
     </script>
 </body>
 </html>
