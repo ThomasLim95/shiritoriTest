@@ -23,6 +23,10 @@
         button:hover {
             background-color: #f48fb1;
         }
+        .rule {
+          font-size: 10px;
+          padding: 5px;
+        }
         #words { margin-top: 20px; font-size: 14px; }
         .scoreboard { margin-top: 20px; }
         .scoreboard h2 { font-size: 18px; }
@@ -62,23 +66,33 @@
     </div>
     
     <div id="rankedMode" class="hidden">
-        <p>Enter a word that starts with the last letter of the previous word!</p>
-        <p id = "enterNameText">Enter your name:</p>
+        <div id ="rules" style="border: thin solid black">
+          <p> Rules:</p>
+          <p> 3 letters or more</p>
+          <p> Make 3 mistakes and it's game over</p>
+          <p> Time limit of 3 mins.</p>
+          <p><button onclick = "hideRules()" id = "hideRules" class = "rule";>(hide)</button></p>
+        </div>
+        <p><button onclick = "showRules()" id = "showRules" class = "rule hidden";>(show rules)</button></p>
+        <p id = "enterNameText">Enter your name: </p>
         <input type="text" id="playerName" placeholder="Your name"> 
-        <button onclick="confirmName()" id = confirmNameButton>Confirm</button>
+        <p><button onclick="confirmName()" id = confirmNameButton>Confirm</button></p>
         <p id="playerNameC" class="hidden"> Player name:</p>
+        <p><button onclick="resetName()" id="resetName" class="hidden">Reset name</button></p>
         <p><button onclick="startRankedGame()" id = startRankGameButton class = "hidden">Start game</button></p>
           <div id ="rankedInfo" class = "hidden">
-          <p id="timer">Time Left: 300s</p>
-          <p id="mistakes">Mistakes: 0</p>
-          <p>Last word: <span id="rankedLastWord">None</span></p>
-          <p>Next letter: <span id="rankedNextLetter">Any</span></p>
-          <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
-          <button onclick="submitRankedWord()">Submit</button>
-          <p id="rankedStatus"></p>
-          <p>Score: <span id="rankedScore">0</span></p>
-          <div id="rankedWords"></div>
-          </div>
+            <p> Enter a word that starts with the last letter of the previous word!</p>
+            <p id="timer">Time Left: 180s</p>
+            <p id="mistakes">Mistakes: 0</p>
+            <p>Last word: <span id="rankedLastWord">None</span></p>
+            <p>Next letter: <span id="rankedNextLetter">Any</span></p>
+            <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+            <button onclick="submitRankedWord()">Submit</button>
+            <p id="rankedStatus"></p>
+            <p>Score: <span id="rankedScore">0</span></p>
+            <div id="rankedWords"></div>
+            <p><button onclick="endRankedGame()" id = "endRankedGameButton">End game</button></p>
+            </div>
     </div>
     
     <script>
@@ -93,6 +107,7 @@
         let gameOver = 0;
         let playerName = "";
         let gameMode = 0;  // 0 = normal 1 = rank
+        let rankGameStarted = 0; //0 = not started 1 = started
 
         async function isValidWord(word) {
             let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
@@ -102,6 +117,9 @@
         function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
+            if (rankGameStarted == 1) {
+              endRankedGame();
+            }
             gameMode = 0;
         }
         
@@ -110,6 +128,16 @@
             document.getElementById('rankedMode').classList.remove('hidden');
             gameMode = 1;
             resetGame();
+        }
+        
+        function hideRules() {
+          document.getElementById('rules').classList.add('hidden');
+          document.getElementById('showRules').classList.remove('hidden');
+        }
+        
+        function showRules() {
+          document.getElementById('rules').classList.remove('hidden');
+          document.getElementById('showRules').classList.add('hidden');
         }
         
         function confirmName() {
@@ -124,7 +152,19 @@
             document.getElementById('playerNameC').textContent = "Player Name: " + playerName;
             document.getElementById('startRankGameButton').classList.remove('hidden');
             document.getElementById('enterNameText').classList.add('hidden');
+            document.getElementById('resetName').classList.remove('hidden');
             
+        }
+        
+        function resetName() {
+            document.getElementById('playerName').classList.remove('hidden');
+            document.getElementById('playerNameC').classList.add('hidden');
+            document.getElementById('confirmNameButton').classList.remove('hidden');
+            document.getElementById('startRankGameButton').classList.add('hidden');
+            document.getElementById('enterNameText').classList.remove('hidden');
+            document.getElementById('resetName').classList.add('hidden');
+            playerName = [];
+          
         }
         
         function startRankedGame() {
@@ -133,11 +173,13 @@
             mistakes = 0;
             timeLeft = 180;
             gameOver = 0;
+            rankGameStarted = 1;
             document.getElementById('rankedScore').textContent = rankedScore;
             document.getElementById('rankedWords').innerHTML = "";
             document.getElementById('rankedStatus').textContent = "";
             document.getElementById('rankedInfo').classList.remove('hidden');
             document.getElementById('startRankGameButton').classList.add('hidden');
+            document.getElementById('resetName').classList.add('hidden');
             document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
             startTimer();
         }
@@ -174,6 +216,7 @@
             document.getElementById('rankedWordInput').value = "";
             document.getElementById('startRankGameButton').classList.remove('hidden');
             document.getElementById('rankedInfo').classList.add('hidden');
+            document.getElementById('resetName').classList.remove('hidden');
         }
         
         async function submitRankedWord() {
@@ -191,6 +234,17 @@
                 }
                 return;
             }
+            if (input.length < 3){
+              rankedStatus.textContent = "Enter a word with 3 letters or more!";
+              mistakes++;
+              document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+              if (mistakes >= 3) {
+              gameOver = 1;
+              isGameOver();
+              }
+              return
+            }
+            
             if (rankedWords.length > 0) {
                 let lastRankedWord = rankedWords[rankedWords.length - 1];
                 if (input[0] !== lastRankedWord[lastRankedWord.length - 1]) {
@@ -227,7 +281,7 @@
             document.getElementById('rankedWordInput').value = "";
             document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
             rankedStatus.textContent = "";
-            showDinoAnimation();
+            // showDinoAnimation();
             // sendDataToSheet();
             // Send the word to Google Sheets
             
@@ -255,6 +309,7 @@
             alert("Game Over! Your score: " + rankedScore);
             sendRankedScore();
             resetRankedGame();
+            rankGameStarted = 0;
         }
         
         async function sendRankedScore() {
