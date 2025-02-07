@@ -59,11 +59,12 @@
         <p>Next letter: <span id="nextLetter">Any</span></p>
         <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
         <button onclick="submitWord()">Submit</button>
-        <button onclick="resetGame()">Reset</button>
         <p id="status"></p>
         <p>Score: <span id="score">0</span></p>
         <div id="words"></div>
+        <button onclick="resetGame()">Restart</button>
     </div>
+    
     
     <div id="rankedMode" class="hidden">
         <div id ="rules" style="border: thin solid black">
