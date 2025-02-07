@@ -77,8 +77,8 @@
         </div>
         <p><button onclick = "showRules()" id = "showRules" class = "rule hidden";>(show rules)</button></p>
         <p id = "enterNameText">Enter your name: </p>
-        <input type="text" id="playerName" placeholder="Your name"> 
-        <p><button onclick="confirmName()" id = confirmNameButton>Confirm</button></p>
+        <input type="text" id="playerName" placeholder="Your name" onkeypress="handleKeyPress(event)"> 
+        <p><button onclick="confirmName()" id = confirmNameButton >Confirm</button></p>
         <p id="playerNameC" class="hidden"> Player name:</p>
         <p><button onclick="resetName()" id="resetName" class="hidden">Reset name</button></p>
         <p><button onclick="startRankedGame()" id = startRankGameButton class = "hidden">Start game</button></p>
@@ -180,7 +180,7 @@
             document.getElementById('startRankGameButton').classList.add('hidden');
             document.getElementById('enterNameText').classList.remove('hidden');
             document.getElementById('resetName').classList.add('hidden');
-            playerName = [];
+            playerName = "";
           
         }
         
@@ -419,6 +419,10 @@
               }
               if (gameMode == 1) {
                 submitRankedWord();
+              }
+              
+              if (gameMode == 1 && playerName == "") {
+                confirmName();
               }
             }
         }
