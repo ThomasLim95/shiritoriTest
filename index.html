@@ -27,6 +27,11 @@
           font-size: 10px;
           padding: 5px;
         }
+        
+        .leaderboard {
+          font-size: 10px;
+          padding: 5px;
+        }
         #words { margin-top: 20px; font-size: 14px; }
         .scoreboard { margin-top: 20px; }
         .scoreboard h2 { font-size: 18px; }
@@ -45,6 +50,22 @@
             display: none;
         }
         .hidden { display: none; }
+        
+        table {
+            width: 50%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
@@ -94,6 +115,25 @@
             <div id="rankedWords"></div>
             <p><button onclick="endRankedGame()" id = "endRankedGameButton">End game</button></p>
             </div>
+        
+        <div id = "leaderboardDiv">
+          <br>
+          <br>
+          <br>
+        <button onclick="toggleLeaderboard()" id = "toggleLeaderboard" class = "leaderboard">Hide Leaderboard</button>
+        <button onclick="fetchAndDisplayLeaderboard()" class = "leaderboard">Refresh Leaderboard</button>
+        <h2>Top 20 Leaderboard</h2>
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        </div>
     </div>
     
     <script>
@@ -460,6 +500,76 @@
                 dino.style.display = 'none';
             }, 1500);
         }
+        
+        //get data from gsheet and display
+        async function fetchAndDisplayLeaderboard() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/1AhjuG0Uw8YUCPVTrSzYRvT4t6TED89rmQxdt00o_Cbw/values/Sheet1!A:D?key=AIzaSyBxTODz7OU8P1yDjdr0XxLyf5HPV0Ighjc`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const values = data.values;
+
+                if (!values || values.length === 0) {
+                    console.error('No data found');
+                    return;
+                }
+
+                // Find indexes of columns dynamically
+                const headers = values[0]; // First row is column headers
+                const nameIndex = headers.indexOf("name");
+                const scoreIndex = headers.indexOf("score");
+
+                if (nameIndex === -1 || scoreIndex === -1) {
+                    console.error('Columns "name" or "score" not found');
+                    return;
+                }
+
+                // Remove headers and parse data
+                const leaderboard = values.slice(1)
+                    .map(row => ({
+                        name: row[nameIndex] || "Unknown",
+                        score: parseInt(row[scoreIndex]) || 0
+                    }))
+                    .filter(player => !isNaN(player.score)) // Remove invalid scores
+                    .sort((a, b) => b.score - a.score) // Sort by highest score
+                    .slice(0, 20); // Get top 20
+
+                displayLeaderboard(leaderboard);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        function displayLeaderboard(leaderboard) {
+            const tableBody = document.querySelector("#leaderboard tbody");
+            tableBody.innerHTML = ''; // Clear previous data
+
+            leaderboard.forEach((player, index) => {
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${player.name}</td>
+                    <td>${player.score}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        function toggleLeaderboard() {
+            const table = document.getElementById("leaderboard");
+            const button = document.getElementById("toggleLeaderboard");
+
+            if (table.style.display === "none") {
+                table.style.display = "table"; // Show table
+                button.textContent = "Hide Leaderboard";
+            } else {
+                table.style.display = "none"; // Hide table
+                button.textContent = "Show Leaderboard";
+            }
+        }
+
+        fetchAndDisplayLeaderboard(); // Load leaderboard on page load
     </script>
 </body>
 </html>
