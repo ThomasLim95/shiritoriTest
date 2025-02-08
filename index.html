@@ -70,7 +70,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-        <h1>Shiritori Game</h1>
+    <h1>Shiritori Game</h1>
     <button onclick="startNormalMode()">Normal Mode</button>
     <button onclick="startRankedMode()">Ranked Mode</button>
     
@@ -503,7 +503,7 @@
         
         //get data from gsheet and display
         async function fetchAndDisplayLeaderboard() {
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/1AhjuG0Uw8YUCPVTrSzYRvT4t6TED89rmQxdt00o_Cbw/values/Sheet1!A:D?key=AIzaSyBxTODz7OU8P1yDjdr0XxLyf5HPV0Ighjc`;
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/1AhjuG0Uw8YUCPVTrSzYRvT4t6TED89rmQxdt00o_Cbw/values/Sheet1!B:C?key=AIzaSyBxTODz7OU8P1yDjdr0XxLyf5HPV0Ighjc`;
 
             try {
                 const response = await fetch(url);
@@ -554,6 +554,7 @@
                 `;
                 tableBody.appendChild(tr);
             });
+            showLeaderboard();
         }
         
         function toggleLeaderboard() {
@@ -568,8 +569,17 @@
                 button.textContent = "Show Leaderboard";
             }
         }
+        
+        function showLeaderboard() {
+            const table = document.getElementById("leaderboard");
+            const button = document.getElementById("toggleLeaderboard");
 
-        window.onload = fetchAndDisplayLeaderboard(); // Load leaderboard on page load
+            if (table.style.display === "none") {
+                table.style.display = "table"; // Show table
+                button.textContent = "Hide Leaderboard";
+        fetchAndDisplayLeaderboard(); // Load leaderboard on page load
+            }
+        }
     </script>
 </body>
 </html>
