@@ -70,7 +70,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Shiritori Game</h1>
+        <h1>Shiritori Game</h1>
     <button onclick="startNormalMode()">Normal Mode</button>
     <button onclick="startRankedMode()">Ranked Mode</button>
     
@@ -569,7 +569,7 @@
             }
         }
 
-        fetchAndDisplayLeaderboard(); // Load leaderboard on page load
+        window.onload = fetchAndDisplayLeaderboard(); // Load leaderboard on page load
     </script>
 </body>
 </html>
