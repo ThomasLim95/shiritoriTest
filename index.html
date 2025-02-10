@@ -397,10 +397,10 @@
                 mistakes++;
                 reduceHp();
                 // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                if (mistakes >= 3) {
-                  gameOver = 1;
+                // if (mistakes >= 3) {
+                //   gameOver = 1;
                   isGameOver();
-                }
+                // }
                 return;
             }
             if (input.length < 3){
@@ -408,24 +408,26 @@
               mistakes++;
               reduceHp();
               // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-              if (mistakes >= 3) {
-              gameOver = 1;
-              isGameOver();
-              }
+              // if (mistakes >= 3) {
+              //   gameOver = 1;
+                isGameOver();
+              // }
               return
             }
             
             if (rankedWords.length > 0) {
+                // lastRankedWord = the last word, taken from the list of ranked words -1(last) position
                 let lastRankedWord = rankedWords[rankedWords.length - 1];
+                //lastRankedWord.length -1 = the last letter
                 if (input[0] !== lastRankedWord[lastRankedWord.length - 1]) {
                     rankedStatus.textContent = "Incorrect! The word must start with '" + lastRankedWord[lastRankedWord.length - 1] + "'.";
                     mistakes++;
                     reduceHp();
                     // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                    if (mistakes >= 3) {
-                      gameOver = 1;
+                    // if (mistakes >= 3) {
+                    //   gameOver = 1;
                       isGameOver();
-                    }
+                    // }
                     return;
                 }
                 if (rankedWords.includes(input)) {
@@ -433,10 +435,10 @@
                     mistakes++;
                     reduceHp();
                     // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                    if (mistakes >= 3) {
-                      gameOver = 1;
+                    // if (mistakes >= 3) {
+                    //   gameOver = 1;
                       isGameOver();
-                    }
+                    // }
                     return;
 
                 }
@@ -470,12 +472,20 @@
             // document.getElementById('rankedWordInput').value = "";
         }
         
-        //check ranked game over
-        function isGameOver() {
-          if (gameOver == 1) {
+        // //check ranked game over
+        // function isGameOver() {
+        //   if (gameOver == 1) {
+        //     endRankedGame();
+        //   }
+
+        // }
+        
+        //isGameOver2
+        function isGameOver(){
+          if (mistakes >= 3){
+            gameOver == 1;
             endRankedGame();
           }
-
         }
         
         //end ranked game
@@ -516,9 +526,6 @@
         
         
         // hp function
-            // set url
-            // let redHeart = 
-            // let blackHeart =
         let redHeart = "https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true"
         let blackHeart = "https://github.com/ThomasLim95/shiritoriTest/blob/main/black_heart.png?raw=true"
         
@@ -544,9 +551,11 @@
         }
         
         function resetHp() {
+          //reset to redheart
           document.getElementById("hp1").src = redHeart;
           document.getElementById("hp2").src = redHeart;
           document.getElementById("hp3").src = redHeart;
+          //reset size
           document.getElementById("hp1").style.width = "24px";
           document.getElementById("hp1").style.height = "24px";
           document.getElementById("hp2").style.width = "24px";
