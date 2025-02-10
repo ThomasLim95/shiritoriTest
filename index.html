@@ -168,8 +168,8 @@
         let playerName = "";
         let gameMode = 0;  // 0 = normal 1 = rank
         let rankGameStarted = 0; //0 = not started 1 = started
-        let allowedWordList = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]; //allowed words, but not found in dict api
-
+        const allowedWordList = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]; //allowed words, but not found in dict api
+        const excludedWordList = ["nigger","fuck","pussy","aaa"];
         // async function isValidWord(word) {
         //     let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         //     return response.ok;
@@ -410,12 +410,21 @@
             resetHp();
         }
         
-        //ranked word validity checker
+        //ranked word logic
         async function submitRankedWord() {
             let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
             let status = document.getElementById('rankedStatus');
             
             if (input === "") return;
+            
+            if (excludedWordList.includes(input)) {
+              status.textContent = "Invalid word! Please enter a real word.";
+              mistakes++;
+              reduceHp();
+              isGameOver();
+              return;
+            }
+            
             if (!(await isValidWord(input))) {
                 status.textContent = "Invalid word! Please enter a real word.";
                 mistakes++;
@@ -423,10 +432,12 @@
                 // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
                 // if (mistakes >= 3) {
                 //   gameOver = 1;
-                  isGameOver();
+                isGameOver();
                 // }
                 return;
             }
+            
+                
             if (input.length < 3){
               status.textContent = "Enter a word with 3 letters or more!";
               mistakes++;
@@ -436,7 +447,7 @@
               //   gameOver = 1;
                 isGameOver();
               // }
-              return
+              return;
             }
             
             if (rankedWords.length > 0) {
