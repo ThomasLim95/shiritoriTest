@@ -41,8 +41,8 @@
         .scoreboard h2 { font-size: 18px; }
         .scoreboard ul { list-style: none; padding: 0; }
         .scoreboard li { background: #f8bbd0; padding: 5px; margin: 5px; border-radius: 5px; }
-        #lastWord { font-size: 18px; font-weight: bold; margin-top: 20px; }
-        #nextLetter { font-size: 18px; color: #d81b60; }
+        .lastWord { font-size: 18px; font-weight: bold; margin-top: 20px; }
+        .nextLetter { font-size: 18px; color: #d81b60; }
         #dinoFrame {
             position: fixed;
             bottom: 10px;
@@ -86,8 +86,8 @@
     
     <div id="normalMode">
         <p>Enter a word that starts with the last letter of the previous word!</p>
-        <p>Last word: <span id="lastWord">None</span></p>
-        <p>Next letter: <span id="nextLetter">Any</span></p>
+        <p>Last word: <span id="lastWord" class = "lastWord">None</span></p>
+        <p>Next letter: <span id="nextLetter" class = "nextLetter">Any</span></p>
         <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
         <button onclick="submitWord()">Submit</button>
         <p id="status"></p>
@@ -122,11 +122,11 @@
               <img id = "hp2" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
               <img id = "hp3" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
             </p>
-            <p>Last word: <span id="rankedLastWord">None</span></p>
-            <p>Next letter: <span id="rankedNextLetter">Any</span></p>
+            <p>Last word: <span id="rankedLastWord" class = "lastWord">None</span></p>
+            <p>Next letter: <span id="rankedNextLetter" class = "nextLetter">Any</span></p>
             <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
             <button onclick="submitRankedWord()">Submit</button>
-            <p id="rankedStatus"></p>
+            <p id="rankedStatus" style = "color: #d81b60"></p>
             <p>Score: <span id="rankedScore">0</span></p>
             <div id="rankedWords"></div>
             <p><button onclick="endRankedGame()" id = "endRankedGameButton">End game</button></p>
