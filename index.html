@@ -169,7 +169,7 @@
         let gameMode = 0;  // 0 = normal 1 = rank
         let rankGameStarted = 0; //0 = not started 1 = started
         const allowedWordList = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]; //allowed words, but not found in dict api
-        const excludedWordList = ["nigger","fuck","pussy","aaa"];
+        const excludedWordList = ["nigger","fuck"];
         // async function isValidWord(word) {
         //     let response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         //     return response.ok;
@@ -247,6 +247,12 @@
             let status = document.getElementById('status');
             
             if (input === "") return;
+            
+            if (excludedWordList.includes(input)) {
+              status.textContent = "Invalid word! Please enter a real word.";
+              return;
+            }
+            
             if (!(await isValidWord(input))) {
                 status.textContent = "Invalid word! Please enter a real word.";
                 return;
@@ -271,7 +277,7 @@
             document.getElementById('nextLetter').textContent = input[input.length - 1];
             document.getElementById('wordInput').value = "";
             status.textContent = "";
-            showDinoAnimation();
+            // showDinoAnimation();
             // sendDataToSheet();
             // Send the word to Google Sheets
             
@@ -602,28 +608,28 @@
                 
         
         //leaderboard
+        //old high score functions
+        // function updateHighScores() {
+        //     highScores.push(score);
+        //     highScores.sort((a, b) => b - a);
+        //     highScores = highScores.slice(0, 5);
+        //     localStorage.setItem('highScores', JSON.stringify(highScores));
+        //     displayHighScores();
+        // }
 
-        function updateHighScores() {
-            highScores.push(score);
-            highScores.sort((a, b) => b - a);
-            highScores = highScores.slice(0, 5);
-            localStorage.setItem('highScores', JSON.stringify(highScores));
-            displayHighScores();
-        }
+        // function displayHighScores() {
+        //     let highScoresList = document.getElementById('highScores');
+        //     highScoresList.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
+        // }
+        // displayHighScores();
 
-        function displayHighScores() {
-            let highScoresList = document.getElementById('highScores');
-            highScoresList.innerHTML = highScores.map(score => `<li>${score}</li>`).join('');
-        }
-        displayHighScores();
-
-        function showDinoAnimation() {
-            let dino = document.getElementById('dinoFrame');
-            dino.style.display = 'block';
-            setTimeout(() => {
-                dino.style.display = 'none';
-            }, 1500);
-        }
+        // function showDinoAnimation() {
+        //     let dino = document.getElementById('dinoFrame');
+        //     dino.style.display = 'block';
+        //     setTimeout(() => {
+        //         dino.style.display = 'none';
+        //     }, 1500);
+        // }
         
         //get data from gsheet and display
         async function fetchAndDisplayLeaderboard() {
