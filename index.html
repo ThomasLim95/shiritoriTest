@@ -86,7 +86,8 @@
         <button onclick="resetGame()">Restart</button>
     </div>
     
-    
+    <br>
+    <br>
     <div id="rankedMode" class="hidden">
         <div id ="rules" style="border: thin solid black">
           <p> Rules:</p>
@@ -104,8 +105,13 @@
         <p><button onclick="resetName()" id="resetName" class="hidden">Reset name</button></p>
         <p><button onclick="startRankedGame()" id = startRankGameButton class = "hidden">Start game</button></p>
           <div id ="rankedInfo" class = "hidden">
-            <p id="timer">Time Left: 180s</p>
-            <p id="mistakes">Mistakes: 0</p>
+            <p id="timer" style = "font-weight: bold;color: #d81b60;font-size: 20px">Time Left: 180s</p>
+            <!--<p id="mistakes">Mistakes: 0</p>-->
+            <p id = "life">Life: 
+              <img id = "hp1" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
+              <img id = "hp2" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
+              <img id = "hp3" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
+            </p>
             <p>Last word: <span id="rankedLastWord">None</span></p>
             <p>Next letter: <span id="rankedNextLetter">Any</span></p>
             <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
@@ -120,9 +126,12 @@
           <br>
           <br>
           <br>
+
+        <h2>Top 20 Leaderboard</h2>
         <button onclick="toggleLeaderboard()" id = "toggleLeaderboard" class = "leaderboard">Hide Leaderboard</button>
         <button onclick="fetchAndDisplayLeaderboard()" class = "leaderboard">Refresh Leaderboard</button>
-        <h2>Top 20 Leaderboard</h2>
+        <br>
+        <br>
         <table id="leaderboard">
             <thead>
                 <tr>
@@ -155,6 +164,7 @@
             return response.ok;
         }
         
+        // adding two dictionary apis (testing)
         // async function isValidWord(word) {
         //     try {
 
@@ -171,6 +181,7 @@
         //     }
         // }
         
+        //toggle modes start
         function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
@@ -179,224 +190,34 @@
             }
             gameMode = 0;
         }
-        
         function startRankedMode() {
             document.getElementById('normalMode').classList.add('hidden');
             document.getElementById('rankedMode').classList.remove('hidden');
+            fetchAndDisplayLeaderboard();
             gameMode = 1;
             resetGame();
         }
+        // toggle modes end
         
-        function hideRules() {
-          document.getElementById('rules').classList.add('hidden');
-          document.getElementById('showRules').classList.remove('hidden');
-        }
-        
-        function showRules() {
-          document.getElementById('rules').classList.remove('hidden');
-          document.getElementById('showRules').classList.add('hidden');
-        }
-        
-        function confirmName() {
-            playerName = document.getElementById('playerName').value;
-            if (!playerName) {
-                alert("Please enter your name to start ranked mode!");
-                return;
-            }
-            document.getElementById('playerName').classList.add('hidden');
-            document.getElementById('playerNameC').classList.remove('hidden');
-            document.getElementById('confirmNameButton').classList.add('hidden');
-            document.getElementById('playerNameC').textContent = "Player Name: " + playerName;
-            document.getElementById('startRankGameButton').classList.remove('hidden');
-            document.getElementById('enterNameText').classList.add('hidden');
-            document.getElementById('resetName').classList.remove('hidden');
-            
-        }
-        
-        function resetName() {
-            document.getElementById('playerName').classList.remove('hidden');
-            document.getElementById('playerNameC').classList.add('hidden');
-            document.getElementById('confirmNameButton').classList.remove('hidden');
-            document.getElementById('startRankGameButton').classList.add('hidden');
-            document.getElementById('enterNameText').classList.remove('hidden');
-            document.getElementById('resetName').classList.add('hidden');
-            playerName = "";
-          
-        }
-        
-        function startRankedGame() {
-
-            rankedScore = 0;
-            mistakes = 0;
-            timeLeft = 180;
-            gameOver = 0;
-            rankGameStarted = 1;
-            document.getElementById('rankedScore').textContent = rankedScore;
-            document.getElementById('rankedWords').innerHTML = "";
-            document.getElementById('rankedStatus').textContent = "";
-            document.getElementById('rankedInfo').classList.remove('hidden');
-            document.getElementById('startRankGameButton').classList.add('hidden');
-            document.getElementById('resetName').classList.add('hidden');
-            document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
-            hideRules();
-            startTimer();
-        }
-        
-        
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
-                if (timeLeft == 0) {
-                  clearInterval(timerInterval);
-                  gameOver = 1;
-                  endRankedGame()
-                }
-                if (timeLeft <= 0) {
-                  clearInterval(timerInterval);
-                }
-            }, 1000);
-
-        }
-        
-        function resetRankedGame() {
-            rankedWords = [];
-            rankedScore = 0;
-            timeLeft = -1;
-            mistakes = 0;
-            document.getElementById('rankedScore').textContent = score;
-            document.getElementById('rankedWords').innerHTML = "";
-            document.getElementById('rankedStatus').textContent = "";
-            document.getElementById('rankedLastWord').textContent = "None";
-            document.getElementById('rankedNextLetter').textContent = "Any";
-            document.getElementById('timer').textContent = "Time Left: 0s";
-            document.getElementById('mistakes').textContent = "Mistakes: 0";
-            document.getElementById('rankedWordInput').value = "";
-            document.getElementById('startRankGameButton').classList.remove('hidden');
-            document.getElementById('rankedInfo').classList.add('hidden');
-            document.getElementById('resetName').classList.remove('hidden');
-        }
-        
-        async function submitRankedWord() {
-            let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
-            let status = document.getElementById('rankedStatus');
-            
-            if (input === "") return;
-            if (!(await isValidWord(input))) {
-                status.textContent = "Invalid word! Please enter a real word.";
-                mistakes++;
-                document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                if (mistakes >= 3) {
-                  gameOver = 1;
-                  isGameOver();
-                }
-                return;
-            }
-            if (input.length < 3){
-              rankedStatus.textContent = "Enter a word with 3 letters or more!";
-              mistakes++;
-              document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-              if (mistakes >= 3) {
-              gameOver = 1;
-              isGameOver();
+        //Enter keypress event start. submit word / submit ranked word / confirm name 
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+              if (gameMode == 0) {
+                submitWord();
               }
-              return
-            }
-            
-            if (rankedWords.length > 0) {
-                let lastRankedWord = rankedWords[rankedWords.length - 1];
-                if (input[0] !== lastRankedWord[lastRankedWord.length - 1]) {
-                    rankedStatus.textContent = "Incorrect! The word must start with '" + lastRankedWord[lastRankedWord.length - 1] + "'.";
-                    mistakes++;
-                    document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                    if (mistakes >= 3) {
-                      gameOver = 1;
-                      isGameOver();
-                    }
-                    return;
-                }
-                if (rankedWords.includes(input)) {
-                    rankedStatus.textContent = "This word has already been used! Try another one.";
-                    mistakes++;
-                    document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-                    if (mistakes >= 3) {
-                      gameOver = 1;
-                      isGameOver()
-                    }
-                    return;
-
-                }
-            }
-
-
-            // sendWordToSheet(input);
-            rankedWords.push(input);
-            rankedScore++;
-            document.getElementById('rankedScore').textContent = rankedScore;
-            document.getElementById('rankedWords').innerHTML = rankedWords.join(' → ');
-            document.getElementById('rankedLastWord').textContent = input;
-            document.getElementById('rankedNextLetter').textContent = input[input.length - 1];
-            document.getElementById('rankedWordInput').value = "";
-            document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
-            rankedStatus.textContent = "";
-            // showDinoAnimation();
-            // sendDataToSheet();
-            // Send the word to Google Sheets
-            
-            // let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
-            // if (!input) return;
-            
-            // if (mistakes >= 3) {
-            //     endRankedGame();
-            //     return;
-            // }
-            
-            // rankedScore++;
-            // document.getElementById('rankedScore').textContent = rankedScore;
-            // document.getElementById('rankedWordInput').value = "";
-        }
-        
-        function isGameOver() {
-          if (gameOver == 1) {
-            endRankedGame();
-          }
-
-        }
-        
-        function endRankedGame() {
-            alert("Game Over! Your score: " + rankedScore);
-            sendRankedScore();
-            resetRankedGame();
-            rankGameStarted = 0;
-        }
-        
-        async function sendRankedScore() {
-            const API_URL = "https://script.google.com/macros/s/AKfycbwiuYqQFzUOIjfCyRDkbMTxJNQCvEG__hVFPVkT0QVgpGBZvKc_Ys4cxuwuuRh4P2GtlA/exec";
-            
-            try {
-                let response = await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Allows request but prevents getting response
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ name: playerName, score: rankedScore, words: rankedWords.toString() })
-                });
-        
-                console.log("Word sent to Google Sheets:", playerName, rankedScore);
-            } catch (error) {
-                console.error("Error sending to Google Sheets:", error);
+              if (gameMode == 1) {
+                submitRankedWord();
+              }
+              
+              if (gameMode == 1 && playerName == "") {
+                confirmName();
+              }
             }
         }
-        //     fetch(API_URL, {
-        //         method: "POST",
-        //         mode: "no-cors",
-        //         headers: { "Content-Type": "application/json" },
-        //         body: JSON.stringify({ name: playerName, score: rankedScore })
-        //     });
-        // }
-
-
+        //Enter keypress event end
+        
+        //normal mode code start
+        //normal mode word checker / logic
         async function submitWord() {
             let input = document.getElementById('wordInput').value.trim().toLowerCase();
             let status = document.getElementById('status');
@@ -452,21 +273,7 @@
         //     }
         // }
         
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-              if (gameMode == 0) {
-                submitWord();
-              }
-              if (gameMode == 1) {
-                submitRankedWord();
-              }
-              
-              if (gameMode == 1 && playerName == "") {
-                confirmName();
-              }
-            }
-        }
-
+        //normal mode reset game
         function resetGame() {
             // updateHighScores();
             words = [];
@@ -478,6 +285,279 @@
             document.getElementById('nextLetter').textContent = "Any";
             document.getElementById('wordInput').value = "";
         }
+        //normal mode code end
+
+        
+        //toggle rules start
+        function hideRules() {
+          document.getElementById('rules').classList.add('hidden');
+          document.getElementById('showRules').classList.remove('hidden');
+        }
+        
+        function showRules() {
+          document.getElementById('rules').classList.remove('hidden');
+          document.getElementById('showRules').classList.add('hidden');
+        }
+        //toggle rules end
+        
+        //set and reset name start
+        function confirmName() {
+            playerName = document.getElementById('playerName').value;
+            if (!playerName) {
+                alert("Please enter your name to start ranked mode!");
+                return;
+            }
+            document.getElementById('playerName').classList.add('hidden');
+            document.getElementById('playerNameC').classList.remove('hidden');
+            document.getElementById('confirmNameButton').classList.add('hidden');
+            document.getElementById('playerNameC').textContent = "Player Name: " + playerName;
+            document.getElementById('startRankGameButton').classList.remove('hidden');
+            document.getElementById('enterNameText').classList.add('hidden');
+            document.getElementById('resetName').classList.remove('hidden');
+            
+        }
+        
+        function resetName() {
+            document.getElementById('playerName').classList.remove('hidden');
+            document.getElementById('playerNameC').classList.add('hidden');
+            document.getElementById('confirmNameButton').classList.remove('hidden');
+            document.getElementById('startRankGameButton').classList.add('hidden');
+            document.getElementById('enterNameText').classList.remove('hidden');
+            document.getElementById('resetName').classList.add('hidden');
+            playerName = "";
+          
+        }
+        //set and reset name end
+        
+        //ranked game engine
+        //start ranked game
+        function startRankedGame() {
+
+            rankedScore = 0;
+            mistakes = 0;
+            timeLeft = 180;
+            gameOver = 0;
+            rankGameStarted = 1;
+            document.getElementById('rankedScore').textContent = rankedScore;
+            document.getElementById('rankedWords').innerHTML = "";
+            document.getElementById('rankedStatus').textContent = "";
+            document.getElementById('rankedInfo').classList.remove('hidden');
+            document.getElementById('startRankGameButton').classList.add('hidden');
+            document.getElementById('resetName').classList.add('hidden');
+            document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
+            hideRules();
+            startTimer();
+        }
+        
+          //start timer function
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = "Time Left: " + timeLeft + "s";
+                if (timeLeft == 0) {
+                  clearInterval(timerInterval);
+                  gameOver = 1;
+                  endRankedGame()
+                }
+                if (timeLeft <= 0) {
+                  clearInterval(timerInterval);
+                }
+            }, 1000);
+
+        }
+        
+        //reset ranked game
+        function resetRankedGame() {
+            rankedWords = [];
+            rankedScore = 0;
+            timeLeft = -1;
+            mistakes = 0;
+            document.getElementById('rankedScore').textContent = score;
+            document.getElementById('rankedWords').innerHTML = "";
+            document.getElementById('rankedStatus').textContent = "";
+            document.getElementById('rankedLastWord').textContent = "None";
+            document.getElementById('rankedNextLetter').textContent = "Any";
+            document.getElementById('timer').textContent = "Time Left: 0s";
+            // document.getElementById('mistakes').textContent = "Mistakes: 0";
+            document.getElementById('rankedWordInput').value = "";
+            document.getElementById('startRankGameButton').classList.remove('hidden');
+            document.getElementById('rankedInfo').classList.add('hidden');
+            document.getElementById('resetName').classList.remove('hidden');
+            resetHp();
+        }
+        
+        //ranked word validity checker
+        async function submitRankedWord() {
+            let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
+            let status = document.getElementById('rankedStatus');
+            
+            if (input === "") return;
+            if (!(await isValidWord(input))) {
+                status.textContent = "Invalid word! Please enter a real word.";
+                mistakes++;
+                reduceHp();
+                // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                if (mistakes >= 3) {
+                  gameOver = 1;
+                  isGameOver();
+                }
+                return;
+            }
+            if (input.length < 3){
+              rankedStatus.textContent = "Enter a word with 3 letters or more!";
+              mistakes++;
+              reduceHp();
+              // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+              if (mistakes >= 3) {
+              gameOver = 1;
+              isGameOver();
+              }
+              return
+            }
+            
+            if (rankedWords.length > 0) {
+                let lastRankedWord = rankedWords[rankedWords.length - 1];
+                if (input[0] !== lastRankedWord[lastRankedWord.length - 1]) {
+                    rankedStatus.textContent = "Incorrect! The word must start with '" + lastRankedWord[lastRankedWord.length - 1] + "'.";
+                    mistakes++;
+                    reduceHp();
+                    // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                    if (mistakes >= 3) {
+                      gameOver = 1;
+                      isGameOver();
+                    }
+                    return;
+                }
+                if (rankedWords.includes(input)) {
+                    rankedStatus.textContent = "This word has already been used! Try another one.";
+                    mistakes++;
+                    reduceHp();
+                    // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+                    if (mistakes >= 3) {
+                      gameOver = 1;
+                      isGameOver();
+                    }
+                    return;
+
+                }
+            }
+
+
+            // sendWordToSheet(input);
+            rankedWords.push(input);
+            rankedScore++;
+            document.getElementById('rankedScore').textContent = rankedScore;
+            document.getElementById('rankedWords').innerHTML = rankedWords.join(' → ');
+            document.getElementById('rankedLastWord').textContent = input;
+            document.getElementById('rankedNextLetter').textContent = input[input.length - 1];
+            document.getElementById('rankedWordInput').value = "";
+            // document.getElementById('mistakes').textContent = "Mistakes: " + mistakes;
+            rankedStatus.textContent = "";
+            // showDinoAnimation();
+            // sendDataToSheet();
+            // Send the word to Google Sheets
+            
+            // let input = document.getElementById('rankedWordInput').value.trim().toLowerCase();
+            // if (!input) return;
+            
+            // if (mistakes >= 3) {
+            //     endRankedGame();
+            //     return;
+            // }
+            
+            // rankedScore++;
+            // document.getElementById('rankedScore').textContent = rankedScore;
+            // document.getElementById('rankedWordInput').value = "";
+        }
+        
+        //check ranked game over
+        function isGameOver() {
+          if (gameOver == 1) {
+            endRankedGame();
+          }
+
+        }
+        
+        //end ranked game
+        function endRankedGame() {
+            alert("Game Over! Your score: " + rankedScore);
+            sendRankedScore();
+            resetRankedGame();
+            rankGameStarted = 0;
+        }
+        
+        //send ranked name and score to sheets
+        async function sendRankedScore() {
+            const API_URL = "https://script.google.com/macros/s/AKfycbwiuYqQFzUOIjfCyRDkbMTxJNQCvEG__hVFPVkT0QVgpGBZvKc_Ys4cxuwuuRh4P2GtlA/exec";
+            
+            try {
+                let response = await fetch(API_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Allows request but prevents getting response
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name: playerName, score: rankedScore, words: rankedWords.toString() })
+                });
+        
+                console.log("Word sent to Google Sheets:", playerName, rankedScore);
+            } catch (error) {
+                console.error("Error sending to Google Sheets:", error);
+            }
+        }
+        //     fetch(API_URL, {
+        //         method: "POST",
+        //         mode: "no-cors",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: JSON.stringify({ name: playerName, score: rankedScore })
+        //     });
+        // }
+        
+        
+        
+        // hp function
+            // set url
+            // let redHeart = 
+            // let blackHeart =
+        let redHeart = "https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true"
+        let blackHeart = "https://github.com/ThomasLim95/shiritoriTest/blob/main/black_heart.png?raw=true"
+        
+        function reduceHp() {
+          if (mistakes == 1){
+            document.getElementById("hp3").src = blackHeart;
+            document.getElementById("hp3").style.width = "10px";
+            document.getElementById("hp3").style.height = "10px";
+          }
+          
+          if (mistakes == 2) {
+            document.getElementById("hp2").src = blackHeart;
+            document.getElementById("hp2").style.width = "10px";
+            document.getElementById("hp2").style.height = "10px";
+          }
+          
+          if (mistakes == 3) {
+            document.getElementById("hp1").src = blackHeart;
+            document.getElementById("hp1").style.width = "10px";
+            document.getElementById("hp1").style.height = "10px";
+          }
+          
+        }
+        
+        function resetHp() {
+          document.getElementById("hp1").src = redHeart;
+          document.getElementById("hp2").src = redHeart;
+          document.getElementById("hp3").src = redHeart;
+          document.getElementById("hp1").style.width = "24px";
+          document.getElementById("hp1").style.height = "24px";
+          document.getElementById("hp2").style.width = "24px";
+          document.getElementById("hp2").style.height = "24px";
+          document.getElementById("hp3").style.width = "24px";
+          document.getElementById("hp3").style.height = "24px";
+          
+        }
+                
+        
+        //leaderboard
 
         function updateHighScores() {
             highScores.push(score);
@@ -580,6 +660,8 @@
         fetchAndDisplayLeaderboard(); // Load leaderboard on page load
             }
         }
+        //leaderboard end
+        
     </script>
 </body>
 </html>
