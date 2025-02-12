@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HLCM35WGD0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HLCM35WGD0');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shiritori Game</title>
+    <title>shiritoriTest Game</title>
     <style>
         body { 
             font-family: 'Press Start 2P', cursive;
@@ -43,7 +52,7 @@
         .scoreboard li { background: #f8bbd0; padding: 5px; margin: 5px; border-radius: 5px; }
         .lastWord { font-size: 18px; font-weight: bold; margin-top: 20px; }
         .nextLetter { font-size: 18px; color: #d81b60; }
-        #dinoFrame {
+/*         #dinoFrame {
             position: fixed;
             bottom: 10px;
             left: 10px;
@@ -52,7 +61,7 @@
             background: url('https://github.com/ThomasLim95/shiritoriTest/blob/main/super-mario-bros-mario-jumping.gif?raw=true') no-repeat center center;
             background-size: cover;
             display: none;
-        }
+        } */
         .hidden { display: none; }
         
         table {
@@ -80,7 +89,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Shiritori Game</h1>
+    <h1>shiritoriTest Game</h1>
     <button onclick="startNormalMode()">Normal Mode</button>
     <button onclick="startRankedMode()">Ranked Mode</button>
     
@@ -118,9 +127,9 @@
             <p id="timer" style = "font-weight: bold;color: #d81b60;font-size: 20px">Time Left: 180s</p>
             <!--<p id="mistakes">Mistakes: 0</p>-->
             <p id = "life">Life: 
-              <img id = "hp1" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="hp 1">
-              <img id = "hp2" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="hp 2">
-              <img id = "hp3" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="hp 3">
+              <img id = "hp1" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
+              <img id = "hp2" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
+              <img id = "hp3" src="https://github.com/ThomasLim95/shiritoriTest/blob/main/red_heart.png?raw=true" style="width:24px;height:24px;" alt="alternatetext">
             </p>
             <p>Last word: <span id="rankedLastWord" class = "lastWord">None</span></p>
             <p>Next letter: <span id="rankedNextLetter" class = "nextLetter">Any</span></p>
@@ -358,7 +367,7 @@
           
         }
         //set and reset name end
-        
+        //coded and developed by ThomasLim95, copywrited 2025.
         //ranked game engine
         //start ranked game
         function startRankedGame() {
