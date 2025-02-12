@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!--     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HLCM35WGD0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-HLCM35WGD0');
-</script> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>shiritoriTest Game</title>
@@ -41,10 +33,14 @@
           font-size: 10px;
           padding: 5px;
         }
-        
-
+        .row {
+          display: flex;
         }
         
+        .column {
+          flex: 50%;
+        }        
+
         #words { margin-top: 20px; font-size: 14px; }
         .scoreboard { margin-top: 20px; }
         .scoreboard h2 { font-size: 18px; }
@@ -92,6 +88,7 @@
     <h1>shiritoriTest Game</h1>
     <button onclick="startNormalMode()">Normal Mode</button>
     <button onclick="startRankedMode()">Ranked Mode</button>
+    <button onclick="startVersusMode()">Versus Mode</button>
     
     <div id="normalMode">
         <p>Enter a word that starts with the last letter of the previous word!</p>
@@ -164,19 +161,53 @@
         </div>
     </div>
     
+    <div id = "versusMode" class = "hidden">
+      <div class="row">
+        <div class="column">
+          <p>test col1</p>
+        <input type="text" id="p1Name" placeholder="Enter P1 name">
+        <button onclick = "confirmP1Name()" id = "confirmP1Name">Confirm P1 name</button>
+        <p id = "p1NameC" class = "hidden"></p>
+        <button onclick = "resetP1Name()" id = "resetP1Name" class = "hidden">Reset P1 name</button>
+        <p id="vsTimer1" style = "font-weight: bold;color: #d81b60;font-size: 20px">P1 Time Left: 180s</p>
+        </div>
+        
+        <div class="column">
+          <p>test col2</p>
+          <input type="text" id="p2Name" placeholder="Enter P2 name">
+          <button onclick = "confirmP2Name()" id = "confirmP2Name">Confirm P2 name</button>
+          <p id = "p2NameC" class = "hidden"></p>
+          <button onclick = "resetP2Name()" id = "resetP2Name" class = "hidden">Reset P2 name</button>
+          <p id="vsTimer2" style = "font-weight: bold;color: #d81b60;font-size: 20px">P2 Time Left: 180s</p>
+        </div>
+      </div>
+          <p><button onclick= "startVersusGame()" id = startVersusGameButton class = "hidden">Start game</button></p>
+          <div id ="versusInfo" class = "hidden">
+            <p>Last word: <span id="versusLastWord" class = "lastWord">None</span></p>
+            <p>Next letter: <span id="versusNextLetter" class = "nextLetter">Any</span></p>
+            <input type="text" id="versusWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+            <button onclick="submitVersusWord()">Submit</button>
+            <p id="versusStatus" style = "color: #d81b60"></p>
+            <div id="versusWords"></div>
+            <p><button onclick="endVersusGame()" id = "endVersusGameButton">End game</button></p>
+    </div>
+    
     <script>
         
+
         let rankedWords = [];
         let rankedScore = 0;
-        let rankedHighScores = JSON.parse(localStorage.getItem('highScores')) || [];
         let words = [];
         let score = 0;
         let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
         let mistakes = 0;
         let gameOver = 0;
         let playerName = "";
-        let gameMode = 0;  // 0 = normal 1 = rank
+        let gameMode = 0;  // 0 = normal 1 = rank 2 = versus
         let rankGameStarted = 0; //0 = not started 1 = started
+        let p1Name = "";
+        let p2Name = "";
+        let versusWords = [];
         const allowedWordList = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]; //allowed words, but not found in dict api
         const excludedWordList = ["nigger","fuck"];
         // async function isValidWord(word) {
@@ -218,6 +249,7 @@
         function startNormalMode() {
             document.getElementById('normalMode').classList.remove('hidden');
             document.getElementById('rankedMode').classList.add('hidden');
+            document.getElementById('versusMode').classList.add('hidden');
             if (rankGameStarted == 1) {
               endRankedGame();
             }
@@ -226,9 +258,28 @@
         function startRankedMode() {
             document.getElementById('normalMode').classList.add('hidden');
             document.getElementById('rankedMode').classList.remove('hidden');
+            document.getElementById('versusMode').classList.add('hidden');
             fetchAndDisplayLeaderboard();
             gameMode = 1;
             resetGame();
+        }
+        
+        function startVersusMode(){
+          document.getElementById('normalMode').classList.add('hidden');
+          document.getElementById('rankedMode').classList.add('hidden');
+          document.getElementById('versusMode').classList.remove('hidden');
+          if (gameMode == 0){
+            resetGame();
+          }
+          
+          if (gameMode == 1){
+            if (rankGameStarted == 1){
+              endRankedGame();
+            }
+          }
+          
+          playerName = "";
+          gameMode = 2;
         }
         // toggle modes end
         
@@ -720,6 +771,201 @@
             }
         }
         //leaderboard end
+        
+        
+        // //start versus mode logic
+        function confirmP1Name() {
+          p1Name = document.getElementById('p1Name').value;
+          if (!p1Name) {
+            alert("Please enter P1 name!");
+            return;
+          }
+          document.getElementById('p1NameC').textContent = "Player 1: " + p1Name;
+          document.getElementById('p1NameC').classList.remove('hidden');
+          document.getElementById('confirmP1Name').classList.add('hidden');
+          document.getElementById('p1Name').classList.add('hidden');
+          document.getElementById('resetP1Name').classList.remove('hidden');
+          if (p2Name !== "") {
+            document.getElementById('startVersusGameButton').classList.remove('hidden');
+          }
+        }
+        
+        function confirmP2Name() {
+          p2Name = document.getElementById('p2Name').value;
+          if (!p2Name) {
+            alert("Please enter P2 name!");
+            return;
+          }
+          document.getElementById('p2NameC').textContent = "Player 2: " + p2Name;
+          document.getElementById('p2NameC').classList.remove('hidden');
+          document.getElementById('confirmP2Name').classList.add('hidden');
+          document.getElementById('p2Name').classList.add('hidden');
+          document.getElementById('resetP2Name').classList.remove('hidden');
+          if (p1Name !== "") {
+            document.getElementById('startVersusGameButton').classList.remove('hidden');
+          }
+        }
+        
+        function resetP1Name() {
+          document.getElementById('p1NameC').classList.add("hidden");
+          document.getElementById('p1Name').classList.remove("hidden");
+          document.getElementById('confirmP1Name').classList.remove("hidden");
+          document.getElementById('resetP1Name').classList.add("hidden");
+          p1Name = "";
+        }
+        
+        function resetP2Name() {
+          document.getElementById('p2NameC').classList.add("hidden");
+          document.getElementById('p2Name').classList.remove("hidden");
+          document.getElementById('confirmP2Name').classList.remove("hidden");
+          document.getElementById('resetP2Name').classList.add("hidden");
+          p1Name = "";
+        }
+        
+        let activePlayer = 0; //0 = no one, 1 = p1, 2 = p2
+        
+        function startVersusGame() {
+          document.getElementById('versusInfo').classList.remove("hidden");
+          document.getElementById('resetP1Name').classList.add("hidden");
+          document.getElementById('resetP2Name').classList.add("hidden");
+          document.getElementById('startVersusGameButton').classList.add("hidden")
+          activePlayer = 1;
+          startTimer1();
+        }
+        
+        //versus word logic
+        
+        //logic flow as such -> submit word -> changeActivePlayer() -> togglePlayerTimer()
+        // changeActivePlayer() sets active player Number
+        // togglePlayerTimer() checks for activePlayerNumber and toggles the timer for said player
+        // startTimer1 or startTimer2 is found in togglePlayerTimer()
+        // I could technically merge this two functions into 1
+        async function submitVersusWord() {
+            let input = document.getElementById('versusWordInput').value.trim().toLowerCase();
+            let status = document.getElementById('versusStatus');
+            
+            if (input === "") return;
+            
+            if (excludedWordList.includes(input)) {
+              status.textContent = "Invalid word! Please enter a real word.";
+              //timer reduce, check time end. check end game
+              return;
+            }
+            
+            if (!(await isValidWord(input))) {
+                status.textContent = "Invalid word! Please enter a real word.";
+                //timer reduce, check time end. check end game
+                return;
+            }
+            
+                
+            if (input.length < 3){
+              status.textContent = "Enter a word with 3 letters or more!";
+              //timer reduce, check time end. check end game
+              return;
+            }
+            
+            if (rankedWords.length > 0) {
+                // lastVersusWord = the last word, taken from the list of versus words -1(last) position
+                let lastVersusWord = versusWords[versusWords.length - 1];
+                //lastVersusWord.length -1 = the last letter
+                if (input[0] !== lastVersusWord[lastVersusWord.length - 1]) {
+                    status.textContent = "Incorrect! The word must start with '" + lastVersusWord[lastVersusWord.length - 1] + "'.";
+                    //timer reduce, check time end. check end game
+                    return;
+                }
+                if (versusWords.includes(input)) {
+                    status.textContent = "This word has already been used! Try another one.";
+                    //timer reduce, check time end. check end game
+                    return;
+
+                }
+            }
+            
+            changeActivePlayer();
+            togglePlayerTimer();
+            versusWords.push(input);
+            document.getElementById('versusWords').innerHTML = versusWords.join(' → ');
+            document.getElementById('versusLastWord').textContent = input;
+            document.getElementById('versusNextLetter').textContent = input[input.length - 1];
+            document.getElementById('versusWordInput').value = "";   
+        }
+        
+        function startTimer1() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('vsTimer1').textContent = "Time Left: " + timeLeft + "s";
+                if (timeLeft == 0) {
+                  clearInterval(timerInterval);
+                  gameOver = 1;
+                  endRankedGame()
+                }
+                if (timeLeft <= 0) {
+                  clearInterval(timerInterval);
+                }
+            }, 1000);
+
+        }
+        
+        let timeLeftP1 = 180;
+        let timeLeftP2 = 180;
+        
+        //clearInterval(timerInterval) resets the time interval
+        function startTimer1() {
+            timerInterval = setInterval(() => {
+                timeLeftP1--;
+                document.getElementById('vsTimer1').textContent = "Time Left: " + timeLeftP1 + "s";
+                if (timeLeftP1 == 0) {
+                  clearInterval(timerInterval);
+                  gameOver = 1;
+                  endRankedGame()
+                }
+                if (timeLeftP1 <= 0) {
+                  clearInterval(timerInterval);
+                }
+            }, 1000);
+
+        }
+        
+        function startTimer2() {
+            timerInterval = setInterval(() => {
+                timeLeftP2--;
+                document.getElementById('vsTimer2').textContent = "Time Left: " + timeLeftP2 + "s";
+                if (timeLeftP2 == 0) {
+                  clearInterval(timerInterval);
+                  gameOver = 1;
+                  endRankedGame()
+                }
+                if (timeLeftP2 <= 0) {
+                  clearInterval(timerInterval);
+                }
+            }, 1000);
+
+        }
+      
+      function changeActivePlayer() {
+          if (activePlayer == 1){
+            activePlayer = 2;
+            return;
+          }
+          
+          if (activePlayer == 2){
+            activePlayer = 1;
+            return;
+          }
+        }
+        
+      function togglePlayerTimer() {
+        clearInterval(timerInterval);
+        if (activePlayer == 1){
+          startTimer1();
+          return;
+        }
+        if (activePlayer == 2){
+          startTimer2();
+          return;
+        }
+      }  
         
     </script>
 </body>
