@@ -94,7 +94,7 @@
         <p>Enter a word that starts with the last letter of the previous word!</p>
         <p>Last word: <span id="lastWord" class = "lastWord">None</span></p>
         <p>Next letter: <span id="nextLetter" class = "nextLetter">Any</span></p>
-        <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+        <input type="text" id="wordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)" autocomplete="off">
         <button onclick="submitWord()">Submit</button>
         <p id="status"></p>
         <p>Score: <span id="score">0</span></p>
@@ -130,7 +130,7 @@
             </p>
             <p>Last word: <span id="rankedLastWord" class = "lastWord">None</span></p>
             <p>Next letter: <span id="rankedNextLetter" class = "nextLetter">Any</span></p>
-            <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+            <input type="text" id="rankedWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)" autocomplete="off">
             <button onclick="submitRankedWord()">Submit</button>
             <p id="rankedStatus" style = "color: #d81b60"></p>
             <p>Score: <span id="rankedScore">0</span></p>
@@ -169,7 +169,8 @@
         <button onclick = "confirmP1Name()" id = "confirmP1Name">Confirm P1 name</button>
         <p id = "p1NameC" class = "hidden"></p>
         <button onclick = "resetP1Name()" id = "resetP1Name" class = "hidden">Reset P1 name</button>
-        <p id="vsTimer1" style = "font-weight: bold;color: #d81b60;font-size: 20px">P1 Time Left: 180s</p>
+        <p id="vsTimer1" style = "font-weight: bold;color: #d81b60;font-size: 20px">P1 time left: 180s</p>
+        <p id="reduceTimer1" style ="font-weight: bold;color: #d81b60;font-size: 20px" class = "hidden">- 10!</p>
         </div>
         
         <div class="column">
@@ -178,14 +179,15 @@
           <button onclick = "confirmP2Name()" id = "confirmP2Name">Confirm P2 name</button>
           <p id = "p2NameC" class = "hidden"></p>
           <button onclick = "resetP2Name()" id = "resetP2Name" class = "hidden">Reset P2 name</button>
-          <p id="vsTimer2" style = "font-weight: bold;color: #d81b60;font-size: 20px">P2 Time Left: 180s</p>
+          <p id="vsTimer2" style = "font-weight: bold;color: #d81b60;font-size: 20px">P2 time left: 180s</p>
+          <p id="reduceTimer2" style ="font-weight: bold;color: #d81b60;font-size: 20px" class = "hidden">- 10!</p>
         </div>
       </div>
           <p><button onclick= "startVersusGame()" id = startVersusGameButton class = "hidden">Start game</button></p>
           <div id ="versusInfo" class = "hidden">
             <p>Last word: <span id="versusLastWord" class = "lastWord">None</span></p>
             <p>Next letter: <span id="versusNextLetter" class = "nextLetter">Any</span></p>
-            <input type="text" id="versusWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)">
+            <input type="text" id="versusWordInput" placeholder="Enter a word" onkeypress="handleKeyPress(event)" autocomplete="off">
             <button onclick="submitVersusWord()">Submit</button>
             <p id="versusStatus" style = "color: #d81b60"></p>
             <div id="versusWords"></div>
@@ -296,6 +298,11 @@
               if (gameMode == 1 && playerName == "") {
                 confirmName();
               }
+              
+              if (gameMode == 2 && p1Name !== "" && p2Name !== "") {
+                submitVersusWord();
+              }
+              
             }
         }
         //Enter keypress event end
@@ -849,12 +856,14 @@
             if (excludedWordList.includes(input)) {
               status.textContent = "Invalid word! Please enter a real word.";
               //timer reduce, check time end. check end game
+              reducePlayerTimer();
               return;
             }
             
             if (!(await isValidWord(input))) {
                 status.textContent = "Invalid word! Please enter a real word.";
                 //timer reduce, check time end. check end game
+                reducePlayerTimer();
                 return;
             }
             
@@ -862,6 +871,7 @@
             if (input.length < 3){
               status.textContent = "Enter a word with 3 letters or more!";
               //timer reduce, check time end. check end game
+              reducePlayerTimer();
               return;
             }
             
@@ -872,11 +882,13 @@
                 if (input[0] !== lastVersusWord[lastVersusWord.length - 1]) {
                     status.textContent = "Incorrect! The word must start with '" + lastVersusWord[lastVersusWord.length - 1] + "'.";
                     //timer reduce, check time end. check end game
+                    reducePlayerTimer();
                     return;
                 }
                 if (versusWords.includes(input)) {
                     status.textContent = "This word has already been used! Try another one.";
                     //timer reduce, check time end. check end game
+                    reducePlayerTimer();
                     return;
 
                 }
@@ -891,21 +903,6 @@
             document.getElementById('versusWordInput').value = "";   
         }
         
-        function startTimer1() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('vsTimer1').textContent = "Time Left: " + timeLeft + "s";
-                if (timeLeft == 0) {
-                  clearInterval(timerInterval);
-                  gameOver = 1;
-                  endRankedGame()
-                }
-                if (timeLeft <= 0) {
-                  clearInterval(timerInterval);
-                }
-            }, 1000);
-
-        }
         
         let timeLeftP1 = 180;
         let timeLeftP2 = 180;
@@ -914,11 +911,11 @@
         function startTimer1() {
             timerInterval = setInterval(() => {
                 timeLeftP1--;
-                document.getElementById('vsTimer1').textContent = "Time Left: " + timeLeftP1 + "s";
+                document.getElementById('vsTimer1').textContent = "P1 time left: " + timeLeftP1 + "s";
                 if (timeLeftP1 == 0) {
                   clearInterval(timerInterval);
                   gameOver = 1;
-                  endRankedGame()
+                  // endVersusGame() //check logic
                 }
                 if (timeLeftP1 <= 0) {
                   clearInterval(timerInterval);
@@ -930,11 +927,11 @@
         function startTimer2() {
             timerInterval = setInterval(() => {
                 timeLeftP2--;
-                document.getElementById('vsTimer2').textContent = "Time Left: " + timeLeftP2 + "s";
+                document.getElementById('vsTimer2').textContent = "P2 time left: " + timeLeftP2 + "s";
                 if (timeLeftP2 == 0) {
                   clearInterval(timerInterval);
                   gameOver = 1;
-                  endRankedGame()
+                  // endVersusGame() //check logic
                 }
                 if (timeLeftP2 <= 0) {
                   clearInterval(timerInterval);
@@ -965,7 +962,67 @@
           startTimer2();
           return;
         }
-      }  
+      }
+      
+      function reducePlayerTimer() {
+        if (activePlayer == 1){
+          timeLeftP1 = (timeLeftP1 - 10);
+          document.getElementById("vsTimer1").textContent = "P1 time left: " + timeLeftP1 + "s";
+          document.getElementById("reduceTimer1").classList.remove("hidden");
+          setTimeout(() => {
+            document.getElementById("reduceTimer1").classList.add("hidden"); // Hide after 1 second
+        }, 1000);
+          // delayCallback(() => document.getElementById.timeLeftP1("reduceTimer1").classList.add("hidden"), 1000);
+          return;
+        }
+        if (activePlayer == 2){
+          timeLeftP2 = (timeLeftP2 - 10);
+          document.getElementById("vsTimer2").textContent = "P2 time left: " + timeLeftP2 + "s";
+          document.getElementById("reduceTimer2").classList.remove("hidden");
+          setTimeout(() => {
+            document.getElementById("reduceTimer2").classList.add("hidden"); // Hide after 1 second
+        }, 1000);
+        document.getElementById("vsTimer2").textContent = "P2 time left: " + timeLeftP2 + "s";
+          // delayCallback(document.getElementById.timeLeftP2("reduceTimer2").classList.add("hidden"), 1000);
+          return;
+        }
+      }
+      
+      let versusWinner = 0;
+      
+      function isWinner() {
+        if (timeLeftP1 <= 0){
+          versusWinner = 2;
+          clearInterval(timerInterval);
+          return;
+        }
+        
+        if (timeLeftP2 <= 0){
+          versusWinner = 1;
+          clearInterval(timerInterval);
+          return;
+        }
+      }
+      
+      function delayCallback(callback, time) {
+        setTimeout(callback, time);
+      }
+      
+      function endVersusGame() {
+        isWinner();
+        if (versusWinner == 1) {
+          alert("Game Over! The winner is " + document.getElementById("p1Name").value) + "!";
+        }
+        if (versusWinner == 2) {
+          alert("Game Over! The winner is " + document.getElementById("p2Name").value) + "!";
+        }
+        
+        resetVersusGame();
+        versusGameStarted = 0;
+      }
+        
+      
+      // delayCallback(() => console.log('Ran after 1 second'), 1000);
         
     </script>
 </body>
