@@ -196,7 +196,7 @@
       <div class="row">
         <div class="column">
         <input type="text" id="p1Name" placeholder="Enter P1 name">
-        <button onclick = "confirmP1Name()" id = "confirmP1Name">Confirm P1 name</button>
+        <p><button onclick = "confirmP1Name()" id = "confirmP1Name">Confirm P1 name</button></p>
         <p id = "p1NameC" class = "hidden"></p>
         <button onclick = "resetP1Name()" id = "resetP1Name" class = "hidden">Reset P1 name</button>
         <br>
@@ -208,7 +208,7 @@
         
         <div class="column">
           <input type="text" id="p2Name" placeholder="Enter P2 name">
-          <button onclick = "confirmP2Name()" id = "confirmP2Name">Confirm P2 name</button>
+          <p><button onclick = "confirmP2Name()" id = "confirmP2Name">Confirm P2 name</button></p>
           <p id = "p2NameC" class = "hidden"></p>
           <button onclick = "resetP2Name()" id = "resetP2Name" class = "hidden">Reset P2 name</button>
           <br>
@@ -968,6 +968,7 @@
             changeActivePlayer();
             togglePlayerTimer();
             versusWords.push(input);
+            status.textContent = "";
             document.getElementById('versusWords').innerHTML = versusWords.join(' → ');
             document.getElementById('versusLastWord').textContent = input;
             document.getElementById('versusNextLetter').textContent = input[input.length - 1];
