@@ -93,6 +93,9 @@
             width: 100%;
             height: 20px;
             background-color: black;
+            font-weight: bold;
+            color: #d81b60;
+            font-size: 20px
         }
         
         .versusTimerActive {
@@ -107,7 +110,9 @@
           font-size: 25px;
         }
         
-        
+        .rules {
+          border: thin solid black;
+        }
         
     </style>
 
@@ -136,7 +141,7 @@
     <br>
     <br>
     <div id="rankedMode" class="hidden">
-        <div id ="rules" style="border: thin solid black">
+        <div id ="rules" class = "rules">
           <p> Rules:</p>
           <p> Enter a word that starts with the last letter of the previous word!</p>
           <p> 3 letters or more</p>
@@ -193,6 +198,18 @@
     </div>
     
     <div id = "versusMode" class = "hidden">
+      
+      <div id = "versusRules" class = "rules">
+        <p> Rules:</p>
+          <p> Enter a word that starts with the last letter of the previous word!</p>
+          <p> 2 players, 1 pc. Take turns at every correct word submitted</p>
+          <p> 3 letters or more</p>
+          <p> Mistake = -10 seconds</p>
+          <p> When time left = 0, you lose</p>
+          <p><button onclick = "hideVersusRules()" id = "hideVersusRules" class = "rule";>(hide)</button></p>
+        </div>
+        <p><button onclick = "showVersusRules()" id = "showVersusRules" class = "rule hidden";>(show rules)</button></p>
+        <p></p>
       <div class="row">
         <div class="column">
         <input type="text" id="p1Name" placeholder="Enter P1 name">
@@ -202,7 +219,7 @@
         <br>
           <div class="container">
             <p id="vsTimer1" class = "hidden">P1 time left: 180s</p>
-            <p id="reduceTimer1" style ="font-weight: bold;color: #d81b60;font-size: 20px" class = "line hidden">-10s!</p>
+            <p id="reduceTimer1" class = "line hidden">-10s!</p>
           </div>
         </div>
         
@@ -214,7 +231,7 @@
           <br>
           <div class = "container">
             <p id="vsTimer2" class = "hidden">P2 time left: 180s</p>
-            <p id="reduceTimer2" style ="font-weight: bold;color: #d81b60;font-size: 20px" class = "line hidden">-10s!</p>
+            <p id="reduceTimer2" class = "line hidden">-10s!</p>
           </div>
         </div>
       </div>
@@ -884,6 +901,7 @@
                 
         function startVersusGame() {
           versusGameStarted = 1;
+          hideVersusRules();
           document.getElementById('versusInfo').classList.remove("hidden");
           document.getElementById('resetP1Name').classList.add("hidden");
           document.getElementById('resetP2Name').classList.add("hidden");
@@ -904,6 +922,16 @@
           
           
           versusWinner = 0;
+        }
+        
+        function hideVersusRules() {
+          document.getElementById('versusRules').classList.add('hidden');
+          document.getElementById('showVersusRules').classList.remove('hidden');
+        }
+        
+        function showVersusRules() {
+          document.getElementById('versusRules').classList.remove('hidden');
+          document.getElementById('showVersusRules').classList.add('hidden');
         }
         
         //versus word logic
